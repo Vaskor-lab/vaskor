@@ -4,9 +4,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VASKOR</title>
+
+    <style>
+        #typing {
+            display: inline-block;
+        }
+
+        #cursor {
+            display: inline-block;
+            animation: blink 0.8s infinite;
+        }
+
+        @keyframes blink {
+            0%, 49% {
+                opacity: 1;
+            }
+            50%, 100% {
+                opacity: 0;
+            }
+        }
+    </style>
 </head>
+
 <body>
     <h1>VASKOR</h1>
-   <p>Building the infrastructure for connected knowledge.</p>
+
+    <p>
+        <span id="typing"></span><span id="cursor">▌</span>
+    </p>
+
+    <script>
+        const text = "Building the infrastructure for connected knowledge ";
+        const typingElement = document.getElementById("typing");
+
+        let index = 0;
+
+        function typeText() {
+            if (index < text.length) {
+                typingElement.textContent += text.charAt(index);
+                index++;
+                setTimeout(typeText, 35);
+            }
+        }
+
+        typeText();
+    </script>
 </body>
 </html>
