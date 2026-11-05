@@ -23,6 +23,26 @@ The goal is not to create a large dataset. The goal is to test whether VASKOR ca
 - Technology serves VASKOR; technology does not redefine VASKOR.
 - Keep it small until evidence requires expansion.
 
+## Map start screen
+
+The initial map screen is a static page in `index.html`; it adds no framework or build step. MapLibre GL JS is loaded from the UNPKG CDN (version 6.16.0). The map style and vector tiles are served by the public OpenFreeMap service, using its Positron style. The browser only requests location after the visitor presses **Mijn locatie**.
+
+These external services are required for the map. The public OpenFreeMap service is provided without an uptime guarantee, so the map may be unavailable or change; the page displays a small status message if the map cannot load. Browser location also depends on permission, device settings, and a secure origin (HTTPS, or localhost).
+
+### Preview
+
+From the repository root, run:
+
+```sh
+python3 -m http.server 8000
+```
+
+Open [http://localhost:8000](http://localhost:8000). Stop the local server with Ctrl+C.
+
+### Publishing
+
+The repository contains a `CNAME` for `vaskor.org`, but that file alone does not confirm that GitHub Pages is enabled or that the domain currently serves this branch. To publish through GitHub Pages, open **Settings → Pages**, select deployment from branch, choose `main` and `/(root)`, and save. Confirm the custom domain and HTTPS status there before sharing a public test URL.
+
 ## Repository status
 
 Initial development environment established September 2026.
