@@ -21,9 +21,9 @@ const status=document.getElementById("status"),button=document.getElementById("l
 try{
  const ml=await import("https://unpkg.com/maplibre-gl@6.16.0/dist/maplibre-gl.mjs");
  const map=new ml.Map({container:"map",style:"https://tiles.openfreemap.org/styles/positron",center:[5.3,52.1],zoom:7,minZoom:3,maxZoom:18,cooperativeGestures:true});
- let ready=false,marker;
- map.once("load",()=>{ready=true;status.textContent="Kaart klaar. Je locatie wordt alleen bepaald na je keuze."});
- map.on("error",()=>{if(!ready)status.textContent="Kaartgegevens laden niet. Controleer je verbinding en probeer het later opnieuw."});
+ let marker;
+ map.once("load",()=>{status.textContent="Kaart klaar. Je locatie wordt alleen bepaald na je keuze."});
+ map.on("error",()=>{status.textContent="Kaartgegevens zijn niet volledig beschikbaar. Controleer je verbinding; je kunt de pagina later opnieuw proberen."});
  button.addEventListener("click",()=>{
   if(!navigator.geolocation){status.textContent="Locatiebepaling is niet beschikbaar in deze browser.";return}
   button.disabled=true;status.textContent="Locatietoestemming wordt gevraagd…";
