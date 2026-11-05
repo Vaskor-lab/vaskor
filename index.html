@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://unpkg.com" crossorigin><link rel="preconnect" href="https://tiles.openfreemap.org">
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.16.0/dist/maplibre-gl.css">
 <style>
-:root{font:16px system-ui,-apple-system,"Segoe UI",sans-serif;color:#26352f;background:#f3f5f1}*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0}#map{position:absolute;inset:0;background:#e9ece7}.bar{position:absolute;z-index:2;top:max(1rem,env(safe-area-inset-top));left:1rem;right:1rem;display:flex;justify-content:space-between;align-items:center;pointer-events:none}.brand,.locate,.status{background:#ffffffed;box-shadow:0 2px 12px #26332d18;border-radius:.8rem}.brand{margin:0;padding:.7rem .9rem;font-size:.95rem;letter-spacing:.14em}.locate{pointer-events:auto;min-height:48px;padding:.7rem 1rem;border:0;background:#23473e;color:white;font:inherit;font-weight:600;cursor:pointer}.locate:focus-visible{outline:3px solid #d6973d;outline-offset:3px}.locate:disabled{opacity:.7}.status{position:absolute;z-index:2;top:calc(max(1rem,env(safe-area-inset-top)) + 4rem);left:1rem;max-width:min(26rem,calc(100vw - 2rem));margin:0;padding:.6rem .8rem;color:#46534e;font-size:.875rem;line-height:1.4}.status:empty{display:none}.maplibregl-ctrl-bottom-right{right:max(.5rem,env(safe-area-inset-right));bottom:max(.4rem,env(safe-area-inset-bottom))}@media(max-width:420px){.bar{left:.75rem;right:.75rem}.status{left:.75rem;max-width:calc(100vw - 1.5rem)}}
+:root{font:16px system-ui,-apple-system,"Segoe UI",sans-serif;color:#26352f;background:#f3f5f1}*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0}#map{position:absolute;inset:0;background:#e9ece7}.bar{position:absolute;z-index:2;top:max(1rem,env(safe-area-inset-top));left:1rem;right:1rem;display:flex;justify-content:space-between;align-items:center;pointer-events:none}.brand,.locate,.status,.search-boundary{background:#ffffffed;box-shadow:0 2px 12px #26332d18;border-radius:.8rem}.brand{margin:0;padding:.7rem .9rem;font-size:.95rem;letter-spacing:.14em}.locate{pointer-events:auto;min-height:48px;padding:.7rem 1rem;border:0;background:#23473e;color:white;font:inherit;font-weight:600;cursor:pointer}.locate:focus-visible{outline:3px solid #d6973d;outline-offset:3px}.locate:disabled{opacity:.7}.status{position:absolute;z-index:2;top:calc(max(1rem,env(safe-area-inset-top)) + 4rem);left:1rem;max-width:min(26rem,calc(100vw - 2rem));margin:0;padding:.6rem .8rem;color:#46534e;font-size:.875rem;line-height:1.4}.status:empty{display:none}.search-boundary{position:absolute;z-index:2;left:max(.75rem,env(safe-area-inset-left));bottom:max(.75rem,env(safe-area-inset-bottom));padding:.55rem .75rem;color:#174c42;font-size:.8125rem;font-weight:650;border:1px solid #174c4240}.search-boundary[hidden]{display:none}.maplibregl-ctrl-bottom-right{right:max(.5rem,env(safe-area-inset-right));bottom:max(.4rem,env(safe-area-inset-bottom))}@media(max-width:420px){.bar{left:.75rem;right:.75rem}.status{left:.75rem;max-width:calc(100vw - 1.5rem)}}
 </style>
 </head>
 <body>
@@ -14,23 +14,54 @@
 <div id="map" role="region" aria-label="Interactieve kaart" aria-describedby="status"></div>
 <header class="bar"><h1 class="brand">VASKOR</h1><button class="locate" id="locate" type="button" aria-describedby="status">Mijn locatie</button></header>
 <p class="status" id="status" role="status" aria-live="polite">Kaart laden… Je locatie wordt pas opgevraagd als je op ‘Mijn locatie’ drukt.</p>
+<div class="search-boundary" id="search-boundary" hidden>Zoekgrens · 100 km hemelsbreed</div>
 </main>
 <noscript><p>Schakel JavaScript in om de kaart te gebruiken.</p></noscript>
 <script type="module">
-const status=document.getElementById("status"),button=document.getElementById("locate");
+const status=document.getElementById("status"),button=document.getElementById("locate"),boundaryLabel=document.getElementById("search-boundary");
+const emptyGeoJson={type:"FeatureCollection",features:[]};
+const earthRadius=6371008.8,searchRadius=100000,circleSteps=128;
+function circleFeature(longitude,latitude){
+ const lat1=latitude*Math.PI/180,lon1=longitude*Math.PI/180,angularDistance=searchRadius/earthRadius,coordinates=[];
+ for(let step=0;step<circleSteps;step++){
+  const bearing=2*Math.PI*step/circleSteps;
+  const lat2=Math.asin(Math.sin(lat1)*Math.cos(angularDistance)+Math.cos(lat1)*Math.sin(angularDistance)*Math.cos(bearing));
+  const lon2=lon1+Math.atan2(Math.sin(bearing)*Math.sin(angularDistance)*Math.cos(lat1),Math.cos(angularDistance)-Math.sin(lat1)*Math.sin(lat2));
+  const lon=((lon2*180/Math.PI+540)%360)-180;
+  coordinates.push([lon,lat2*180/Math.PI]);
+ }
+ coordinates.push(coordinates[0]);
+ return {type:"FeatureCollection",features:[{type:"Feature",properties:{radiusMeters:searchRadius},geometry:{type:"Polygon",coordinates:[coordinates]}}]};
+}
 try{
  const ml=await import("https://unpkg.com/maplibre-gl@6.16.0/dist/maplibre-gl.mjs");
  const map=new ml.Map({container:"map",style:"https://tiles.openfreemap.org/styles/positron",center:[5.3,52.1],zoom:7,minZoom:3,maxZoom:18,cooperativeGestures:true});
- let marker;
- map.once("load",()=>{status.textContent="Kaart klaar. Je locatie wordt alleen bepaald na je keuze."});
+ let marker,searchCircle=emptyGeoJson;
+ map.once("load",()=>{
+  map.addSource("search-boundary",{type:"geojson",data:searchCircle});
+  map.addLayer({id:"search-boundary-fill",type:"fill",source:"search-boundary",paint:{"fill-color":"#2c8a72","fill-opacity":0.12}});
+  map.addLayer({id:"search-boundary-line",type:"line",source:"search-boundary",paint:{"line-color":"#176452","line-width":3,"line-dasharray":[2,1.5]}});
+  status.textContent="Kaart klaar. Je locatie wordt alleen bepaald na je keuze.";
+ });
  map.on("error",()=>{status.textContent="Kaartgegevens zijn niet volledig beschikbaar. Controleer je verbinding; je kunt de pagina later opnieuw proberen."});
  button.addEventListener("click",()=>{
   if(!navigator.geolocation){status.textContent="Locatiebepaling is niet beschikbaar in deze browser.";return}
   button.disabled=true;status.textContent="Locatietoestemming wordt gevraagd…";
   navigator.geolocation.getCurrentPosition(({coords})=>{
    const point=[coords.longitude,coords.latitude];
+   if(!Number.isFinite(point[0])||!Number.isFinite(point[1])||point[0]<-180||point[0]>180||point[1]<-90||point[1]>90){
+    status.textContent="Je locatie kon niet worden bepaald. Controleer de locatievoorzieningen en probeer opnieuw.";button.disabled=false;return;
+   }
    if(!marker)marker=new ml.Marker({color:"#23473e"}).setLngLat(point).addTo(map);else marker.setLngLat(point);
-   map.flyTo({center:point,zoom:14,essential:true});status.textContent="Je locatie is op de kaart gemarkeerd.";button.disabled=false;
+   searchCircle=circleFeature(point[0],point[1]);
+   const source=map.getSource("search-boundary");if(source)source.setData(searchCircle);
+   boundaryLabel.hidden=false;
+   const angularDistance=searchRadius/earthRadius,latitudeRadians=point[1]*Math.PI/180;
+   const latitudeDelta=angularDistance*180/Math.PI;
+   const longitudeDelta=Math.asin(Math.min(1,Math.sin(angularDistance)/Math.max(0.000001,Math.cos(latitudeRadians))))*180/Math.PI;
+   map.fitBounds([[point[0]-longitudeDelta,Math.max(-85,point[1]-latitudeDelta)],[point[0]+longitudeDelta,Math.min(85,point[1]+latitudeDelta)]],{padding:{top:128,right:48,bottom:72,left:48},maxZoom:8,duration:800});
+   status.textContent="Je locatie is gemarkeerd. De cirkel toont de geografische zoekgrens van 100 km hemelsbreed.";
+   button.disabled=false;
   },error=>{
    status.textContent=({1:"Geen toegang tot je locatie. De kaart blijft bruikbaar.",2:"Je locatie kon niet worden bepaald. Controleer de locatievoorzieningen en probeer opnieuw.",3:"Locatie bepalen duurde te lang. Probeer opnieuw."})[error.code]||"Locatiebepaling is niet gelukt. De kaart blijft bruikbaar.";
    button.disabled=false;
