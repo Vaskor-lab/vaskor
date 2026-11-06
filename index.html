@@ -14,28 +14,30 @@
 <div id="map" role="region" aria-label="Interactieve kaart" aria-describedby="status"></div>
 <header class="bar"><h1 class="brand">VASKOR</h1><button class="locate" id="locate" type="button" aria-describedby="status">Mijn locatie</button></header>
 <p class="status" id="status" role="status" aria-live="polite">Kaart laden… Druk op ‘Mijn locatie’ om je positie te bepalen en drinkwaterkandidaten te zoeken.</p>
-<div class="search-boundary" id="search-boundary" hidden>Zoekgrens · 100 km hemelsbreed<br>Kandidaten · ongeverifieerde OSM-brondata</div>
+<div class="search-boundary" id="search-boundary" hidden>Zoekgrens · 40 × 60 km<br>Kandidaten · ongeverifieerde OSM-brondata</div>
 </main>
 <noscript><p>Schakel JavaScript in om de kaart te gebruiken.</p></noscript>
 <script type="module">
 const status=document.getElementById("status"),button=document.getElementById("locate"),boundaryLabel=document.getElementById("search-boundary");
 const emptyGeoJson={type:"FeatureCollection",features:[]};
-const earthRadius=6371008.8,searchRadius=100000,circleSteps=128;
+const earthRadius=6371008.8,searchHalfWidth=20000,searchHalfHeight=30000;
 const overpassEndpoints=["https://overpass-api.de/api/interpreter","https://ovp.dresel.systems/api/interpreter"];
 let waterPoints=emptyGeoJson,waterRequest,map;
-function distanceMeters(a,b){
- const radians=value=>value*Math.PI/180,lat1=radians(a[1]),lat2=radians(b[1]),latDelta=lat2-lat1,lonDelta=radians(b[0]-a[0]);
- const haversine=Math.sin(latDelta/2)**2+Math.cos(lat1)*Math.cos(lat2)*Math.sin(lonDelta/2)**2;
- return 2*earthRadius*Math.asin(Math.sqrt(haversine));
+function searchBounds(longitude,latitude){
+ const latitudeDelta=searchHalfHeight/earthRadius*180/Math.PI;
+ const longitudeDelta=searchHalfWidth/(earthRadius*Math.max(Math.cos(latitude*Math.PI/180),1e-12))*180/Math.PI;
+ return {south:Math.max(-90,latitude-latitudeDelta),west:Math.max(-180,longitude-longitudeDelta),north:Math.min(90,latitude+latitudeDelta),east:Math.min(180,longitude+longitudeDelta)};
+}
+function boundaryFeature(bounds){
+ const {south,west,north,east}=bounds;
+ return {type:"FeatureCollection",features:[{type:"Feature",properties:{widthMeters:searchHalfWidth*2,heightMeters:searchHalfHeight*2},geometry:{type:"Polygon",coordinates:[[[west,south],[east,south],[east,north],[west,north],[west,south]]]}}]};
 }
 async function findWaterPoints(longitude,latitude){
  if(waterRequest?.controller)waterRequest.controller.abort();
  waterPoints=emptyGeoJson;const source=map.getSource("osm-water");if(source)source.setData(waterPoints);
- const angularDistance=searchRadius/earthRadius,latRad=latitude*Math.PI/180;
- const latDelta=angularDistance*180/Math.PI,lonDelta=Math.asin(Math.min(1,Math.sin(angularDistance)/Math.max(0.000001,Math.cos(latRad))))*180/Math.PI;
- const south=latitude-latDelta,west=longitude-lonDelta,north=latitude+latDelta,east=longitude+lonDelta;
+ const {south,west,north,east}=searchBounds(longitude,latitude);
  const query=`[out:json][timeout:45];(nwr["amenity"="drinking_water"](${south},${west},${north},${east});nwr["amenity"="water_point"](${south},${west},${north},${east}););out center;`;
- status.textContent="OpenStreetMap wordt doorzocht op drinkwaterpunten binnen 100 km…";
+ status.textContent="OpenStreetMap wordt doorzocht binnen de zoekgrens van 40 × 60 km…";
  let data,lastError;
  const request={controller:null};waterRequest=request;
  for(const [endpointIndex,endpoint] of overpassEndpoints.entries()){
@@ -56,12 +58,12 @@ async function findWaterPoints(longitude,latitude){
   if(lastError||!data)throw lastError||new Error("overpass-empty-response");
   const features=(data.elements||[]).flatMap(element=>{
    const lon=element.lon??element.center?.lon,lat=element.lat??element.center?.lat;
-   if(!Number.isFinite(lon)||!Number.isFinite(lat)||distanceMeters([longitude,latitude],[lon,lat])>searchRadius)return [];
+   if(!Number.isFinite(lon)||!Number.isFinite(lat)||lat<south||lat>north||lon<west||lon>east)return [];
    return [{type:"Feature",geometry:{type:"Point",coordinates:[lon,lat]},properties:{osmType:element.type,osmId:element.id,version:element.version,timestamp:element.timestamp,tags:element.tags||{}}}];
   });
   waterPoints={type:"FeatureCollection",features};
   const pointSource=map.getSource("osm-water");if(pointSource)pointSource.setData(waterPoints);
-  status.textContent=features.length?`${features.length} ruwe OSM-kandidaten gevonden binnen 100 km van je locatie. Dit zijn ongeverifieerde brongegevens; toegankelijkheid, drinkbaarheid, gratis gebruik en openingstijden zijn niet door VASKOR bevestigd.`:"Geen drinkwaterpunten gevonden in OpenStreetMap binnen 100 km van je locatie. Dit betekent niet dat er ter plaatse geen punten zijn.";
+  status.textContent=features.length?`${features.length} ruwe OSM-kandidaten gevonden binnen de zoekgrens van 40 × 60 km. Dit zijn ongeverifieerde brongegevens; toegankelijkheid, drinkbaarheid, gratis gebruik en openingstijden zijn niet door VASKOR bevestigd.`:"Geen drinkwaterpunten gevonden in OpenStreetMap binnen de zoekgrens van 40 × 60 km. Dit betekent niet dat er ter plaatse geen punten zijn.";
  }catch(error){
   if(request!==waterRequest)return;
   status.textContent=error.name==="AbortError"?"De OpenStreetMap-zoekopdracht duurde te lang op beide servers. Probeer het later opnieuw.":error.message?.startsWith("overpass-")?`OpenStreetMap is tijdelijk niet beschikbaar (HTTP ${error.message.slice(9)}). Probeer het later opnieuw.`:"De OpenStreetMap-gegevens konden niet worden opgehaald. Controleer je verbinding en probeer het opnieuw.";
@@ -75,31 +77,19 @@ function showOsmPopup(feature,ml){
  const link=document.createElement("a");link.href=`https://www.openstreetmap.org/${encodeURIComponent(props.osmType)}/${props.osmId}`;link.target="_blank";link.rel="noopener noreferrer";link.textContent="Bekijk bronobject";content.append(link);
  new ml.Popup({maxWidth:"none"}).setLngLat(feature.geometry.coordinates).setDOMContent(content).addTo(map);
 }
-function circleFeature(longitude,latitude){
- const lat1=latitude*Math.PI/180,lon1=longitude*Math.PI/180,angularDistance=searchRadius/earthRadius,coordinates=[];
- for(let step=0;step<circleSteps;step++){
-  const bearing=2*Math.PI*step/circleSteps;
-  const lat2=Math.asin(Math.sin(lat1)*Math.cos(angularDistance)+Math.cos(lat1)*Math.sin(angularDistance)*Math.cos(bearing));
-  const lon2=lon1+Math.atan2(Math.sin(bearing)*Math.sin(angularDistance)*Math.cos(lat1),Math.cos(angularDistance)-Math.sin(lat1)*Math.sin(lat2));
-  const lon=((lon2*180/Math.PI+540)%360)-180;
-  coordinates.push([lon,lat2*180/Math.PI]);
- }
- coordinates.push(coordinates[0]);
- return {type:"FeatureCollection",features:[{type:"Feature",properties:{radiusMeters:searchRadius},geometry:{type:"Polygon",coordinates:[coordinates]}}]};
-}
 try{
  const ml=await import("https://unpkg.com/maplibre-gl@6.16.0/dist/maplibre-gl.mjs");
  map=new ml.Map({container:"map",style:"https://tiles.openfreemap.org/styles/positron",center:[5.3,52.1],zoom:7,minZoom:3,maxZoom:18,cooperativeGestures:true});
- let marker,searchCircle=emptyGeoJson;
+ let marker,searchArea=emptyGeoJson;
  map.once("load",()=>{
-  map.addSource("search-boundary",{type:"geojson",data:searchCircle});
-  map.addLayer({id:"search-boundary-fill",type:"fill",source:"search-boundary",paint:{"fill-color":"#2c8a72","fill-opacity":0.12}});
-  map.addLayer({id:"search-boundary-line",type:"line",source:"search-boundary",paint:{"line-color":"#176452","line-width":3,"line-dasharray":[2,1.5]}});
+  map.addSource("search-boundary",{type:"geojson",data:searchArea});
+  map.addLayer({id:"search-boundary-fill",type:"fill",source:"search-boundary",paint:{"fill-color":"#2c8a72","fill-opacity":0.08}});
+  map.addLayer({id:"search-boundary-line",type:"line",source:"search-boundary",paint:{"line-color":"#176452","line-width":2,"line-dasharray":[2,1.5]}});
   map.addSource("osm-water",{type:"geojson",data:waterPoints});
   map.addLayer({id:"osm-water-points",type:"circle",source:"osm-water",paint:{"circle-radius":["interpolate",["linear"],["zoom"],5,4,12,7],"circle-color":"#d28735","circle-stroke-color":"#fff","circle-stroke-width":1.5}});
   map.on("click","osm-water-points",event=>{const feature=event.features?.[0];if(feature)showOsmPopup(feature,ml)});
   map.on("mouseenter","osm-water-points",()=>{map.getCanvas().style.cursor="pointer"});map.on("mouseleave","osm-water-points",()=>{map.getCanvas().style.cursor=""});
-  status.textContent="Kaart klaar. Druk op ‘Mijn locatie’ om je positie en de zoekcirkel te tonen.";
+  status.textContent="Kaart klaar. Druk op ‘Mijn locatie’ om je positie en de zoekgrens te tonen.";
  });
  map.on("error",()=>{status.textContent="Kaartgegevens zijn niet volledig beschikbaar. Controleer je verbinding; je kunt de pagina later opnieuw proberen."});
  button.addEventListener("click",()=>{
@@ -111,13 +101,11 @@ try{
     status.textContent="Je locatie kon niet worden bepaald. Controleer de locatievoorzieningen en probeer opnieuw.";button.disabled=false;return;
    }
    if(!marker)marker=new ml.Marker({color:"#23473e"}).setLngLat(point).addTo(map);else marker.setLngLat(point);
-   searchCircle=circleFeature(point[0],point[1]);
-   const source=map.getSource("search-boundary");if(source)source.setData(searchCircle);
+   const bounds=searchBounds(point[0],point[1]);
+   searchArea=boundaryFeature(bounds);
+   const source=map.getSource("search-boundary");if(source)source.setData(searchArea);
    boundaryLabel.hidden=false;
-   const angularDistance=searchRadius/earthRadius,latitudeRadians=point[1]*Math.PI/180;
-   const latitudeDelta=angularDistance*180/Math.PI;
-   const longitudeDelta=Math.asin(Math.min(1,Math.sin(angularDistance)/Math.max(0.000001,Math.cos(latitudeRadians))))*180/Math.PI;
-   map.fitBounds([[point[0]-longitudeDelta,Math.max(-85,point[1]-latitudeDelta)],[point[0]+longitudeDelta,Math.min(85,point[1]+latitudeDelta)]],{padding:{top:128,right:48,bottom:72,left:48},maxZoom:8,duration:800});
+   map.fitBounds([[bounds.west,bounds.south],[bounds.east,bounds.north]],{padding:{top:128,right:48,bottom:72,left:48},maxZoom:8,duration:800});
    findWaterPoints(point[0],point[1]);
    button.disabled=false;
   },error=>{
