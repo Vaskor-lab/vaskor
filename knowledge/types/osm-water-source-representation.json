@@ -1,0 +1,28 @@
+{
+  "id": "OSM-WATER-0001",
+  "title": "OpenStreetMap-waterbronrepresentatie",
+  "status": "draft",
+  "domain": "Water availability",
+  "topic": "Drinking water source data",
+  "type": "source_representation",
+  "description": "Een OpenStreetMap-object dat volgens OSM-tags een drinkwaterpunt of waterpunt representeert. Dit object legt vast wat de externe bron registreert; het bevestigt niet zelfstandig dat op die plek een werkelijke, beschikbare of drinkbare waterbron bestaat.",
+  "properties": {
+    "provider": "OpenStreetMap",
+    "osm_type": "node | way | relation",
+    "osm_id": "string",
+    "version": "integer | null",
+    "timestamp": "ISO-8601 | null",
+    "tags": "object",
+    "coordinates": "[longitude, latitude]",
+    "verification": "unverified"
+  },
+  "sources": [
+    {
+      "type": "external_record",
+      "uri": "https://www.openstreetmap.org/{osm_type}/{osm_id}"
+    }
+  ],
+  "version": "0.1",
+  "related_objects": [],
+  "represents": null
+}
