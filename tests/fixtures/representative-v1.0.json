@@ -1,0 +1,32 @@
+{
+  "model_version": "1.0",
+  "type_definitions": [
+    {"id": "TEST-TYPE-WATER", "label": "TEST: watervoorziening", "properties": ["location", "opening_hours", "represented_by"]},
+    {"id": "TEST-TYPE-SANITARY", "label": "TEST: sanitaire voorziening", "properties": ["opening_hours"]},
+    {"id": "TEST-TYPE-CLIMBING", "label": "TEST: klimlocatie", "properties": ["surface"]},
+    {"id": "TEST-TYPE-ARTWORK", "label": "TEST: kunstwerk", "properties": ["creator"]}
+  ],
+  "knowledge_objects": [
+    {"id": "TEST-OBJECT-WATER", "label": "Synthetisch testobject: watervoorziening", "domain": "travel", "type_id": "TEST-TYPE-WATER"},
+    {"id": "TEST-OBJECT-SANITARY", "label": "Synthetisch testobject: sanitair", "domain": "travel", "type_id": "TEST-TYPE-SANITARY"},
+    {"id": "TEST-OBJECT-CLIMBING", "label": "Synthetisch testobject: klimlocatie", "domain": "indoor-climbing", "type_id": "TEST-TYPE-CLIMBING"},
+    {"id": "TEST-OBJECT-ARTWORK", "label": "Synthetisch testobject: kunstwerk", "domain": "art", "type_id": "TEST-TYPE-ARTWORK"}
+  ],
+  "source_representations": [
+    {"id": "TEST-SOURCE-A", "provider": "TEST: fictieve bron A", "record_id": "A-001"},
+    {"id": "TEST-SOURCE-B", "provider": "TEST: fictieve bron B", "record_id": "B-001"},
+    {"id": "TEST-SOURCE-UNMATCHED", "provider": "TEST: fictieve bron zonder objectkoppeling", "record_id": "U-001"}
+  ],
+  "claims": [
+    {"id": "TEST-CLAIM-LOCATION", "subject_id": "TEST-OBJECT-WATER", "property": "location", "value": {"latitude": 40.0, "longitude": -3.0}, "source_ids": ["TEST-SOURCE-A"], "support": "Synthetisch testbewijs: locatieclaim", "temporal_context": "TEST: 2026-01-01"},
+    {"id": "TEST-CLAIM-HOURS-UNKNOWN", "subject_id": "TEST-OBJECT-SANITARY", "property": "opening_hours", "value": {"state": "unknown"}, "source_ids": ["TEST-SOURCE-A"], "support": "Synthetische testdata: openingstijden niet aangeleverd"},
+    {"id": "TEST-CLAIM-OPEN-A", "subject_id": "TEST-OBJECT-WATER", "property": "opening_hours", "value": "TEST: 24/7", "source_ids": ["TEST-SOURCE-A"], "support": "Synthetisch testbewijs A"},
+    {"id": "TEST-CLAIM-OPEN-B", "subject_id": "TEST-OBJECT-WATER", "property": "opening_hours", "value": "TEST: daytime", "source_ids": ["TEST-SOURCE-B"], "support": "Synthetisch tegenbewijs B"},
+    {"id": "TEST-CLAIM-REPRESENTS", "subject_id": "TEST-OBJECT-WATER", "property": "represented_by", "value": "TEST-SOURCE-A", "source_ids": ["TEST-SOURCE-A"], "support": "Synthetische testonderbouwing koppeling"},
+    {"id": "TEST-CLAIM-CLIMBING", "subject_id": "TEST-OBJECT-CLIMBING", "property": "surface", "value": "TEST: indoor", "source_ids": ["TEST-SOURCE-B"], "support": "Synthetische testdata ander toepassingsdomein"},
+    {"id": "TEST-CLAIM-ARTWORK", "subject_id": "TEST-OBJECT-ARTWORK", "property": "creator", "value": "TEST: onbekend", "support": "Synthetische testdata zonder bron; waarschuwing verwacht"}
+  ],
+  "relations": [
+    {"id": "TEST-RELATION-REPRESENTS", "subject_id": "TEST-SOURCE-A", "predicate": "represents", "object_id": "TEST-OBJECT-WATER", "supporting_claim_ids": ["TEST-CLAIM-REPRESENTS"]}
+  ]
+}

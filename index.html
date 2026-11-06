@@ -7,22 +7,28 @@
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.16.0/dist/maplibre-gl.css">
 <style>
 :root{font:16px system-ui,-apple-system,"Segoe UI",sans-serif;color:#26352f;background:#f3f5f1}*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0}#map{position:absolute;inset:0;background:#e9ece7}.bar{position:absolute;z-index:2;top:max(1rem,env(safe-area-inset-top));left:1rem;right:1rem;display:flex;justify-content:space-between;align-items:center;pointer-events:none}.brand,.locate,.status,.search-boundary{background:#ffffffed;box-shadow:0 2px 12px #26332d18;border-radius:.8rem}.brand{margin:0;padding:.7rem .9rem;font-size:.95rem;letter-spacing:.14em}.locate{pointer-events:auto;min-height:48px;padding:.7rem 1rem;border:0;background:#23473e;color:white;font:inherit;font-weight:600;cursor:pointer}.locate:focus-visible{outline:3px solid #d6973d;outline-offset:3px}.locate:disabled{opacity:.7}.search-osm{pointer-events:auto;min-height:48px;padding:.7rem 1rem;border:1px solid #23473e;background:#ffffffed;color:#23473e;border-radius:.8rem;font:inherit;font-weight:600;cursor:pointer}.search-osm:focus-visible{outline:3px solid #d6973d;outline-offset:3px}.search-osm:disabled{opacity:.7}.status{position:absolute;z-index:2;top:calc(max(1rem,env(safe-area-inset-top)) + 4rem);left:1rem;max-width:min(26rem,calc(100vw - 2rem));margin:0;padding:.6rem .8rem;color:#46534e;font-size:.875rem;line-height:1.4}.status:empty{display:none}.search-boundary{position:absolute;z-index:2;left:max(.75rem,env(safe-area-inset-left));bottom:max(.75rem,env(safe-area-inset-bottom));padding:.55rem .75rem;color:#174c42;font-size:.8125rem;font-weight:650;border:1px solid #174c4240}.search-boundary[hidden]{display:none}.maplibregl-popup-content{max-width:min(22rem,calc(100vw - 2rem));max-height:55vh;overflow:auto}.osm-popup h2{margin:0 0 .25rem;font-size:1rem}.osm-popup p{margin:.25rem 0;color:#5a655f;font-size:.8125rem}.osm-popup dl{display:grid;grid-template-columns:minmax(5rem,auto) 1fr;gap:.2rem .6rem;margin:.6rem 0 0;font-size:.8125rem;overflow-wrap:anywhere}.osm-popup dt{font-weight:650}.osm-popup dd{margin:0}.maplibregl-ctrl-bottom-right{right:max(.5rem,env(safe-area-inset-right));bottom:max(.4rem,env(safe-area-inset-bottom))}@media(max-width:420px){.bar{left:.75rem;right:.75rem}.status{left:.75rem;max-width:calc(100vw - 1.5rem)}}
+#export-data{position:absolute;z-index:2;left:max(.75rem,env(safe-area-inset-left));bottom:calc(max(.75rem,env(safe-area-inset-bottom)) + 3.7rem);min-height:46px;padding:.55rem .75rem;border:1px solid #23473e;border-radius:.8rem;background:#ffffffed;color:#23473e;font:inherit;font-weight:600;box-shadow:0 2px 12px #26332d18}.capture{display:block;width:100%;margin-top:.75rem;min-height:44px;padding:.6rem .75rem;border:0;border-radius:.6rem;background:#23473e;color:white;font:inherit;font-weight:600;cursor:pointer}@media(max-width:520px){.brand{padding:.6rem;font-size:.8rem}.search-osm,.locate{min-height:44px;padding:.55rem .6rem;font-size:.78rem}}
 </style>
 </head>
 <body>
 <main aria-label="VASKOR-kaart">
 <div id="map" role="region" aria-label="Interactieve kaart" aria-describedby="status"></div>
-<header class="bar"><h1 class="brand">VASKOR</h1><div style="display:flex;gap:.5rem;pointer-events:auto"><button class="search-osm" id="search-osm" type="button" aria-describedby="status">Zoek OSM-waterbronnen hier</button><button class="locate" id="locate" type="button" aria-describedby="status">Mijn locatie</button></div></header>
-<p class="status" id="status" role="status" aria-live="polite">Kaart laden… Gebruik ‘Mijn locatie’ om de kaart te centreren. Zoek OSM-waterbronnen alleen met de aparte zoekknop.</p>
+<header class="bar"><h1 class="brand">VASKOR</h1><div style="display:flex;gap:.5rem;pointer-events:auto"><button class="search-osm" id="search-osm" type="button" aria-describedby="status">Zoek voorzieningen</button><button class="locate" id="locate" type="button" aria-describedby="status">Mijn locatie</button></div></header>
+<p class="status" id="status" role="status" aria-live="polite">Kaart laden… Gebruik ‘Mijn locatie’ om de kaart te centreren. Voorzieningen zoeken gebeurt alleen wanneer je dat kiest.</p>
 <div class="search-boundary" id="search-boundary" hidden>Zoekgrens · 40 × 60 km<br>Kandidaten · ongeverifieerde OSM-brondata</div>
+<button id="export-data" type="button" aria-describedby="status">Exporteer veldtest · 0</button>
 </main>
 <noscript><p>Schakel JavaScript in om de kaart te gebruiken.</p></noscript>
 <script type="module">
-const status=document.getElementById("status"),button=document.getElementById("locate"),searchButton=document.getElementById("search-osm"),boundaryLabel=document.getElementById("search-boundary");
+import {emptyPilotDataset,addFieldObservation} from "./knowledge/pilot.mjs";
+const status=document.getElementById("status"),button=document.getElementById("locate"),searchButton=document.getElementById("search-osm"),boundaryLabel=document.getElementById("search-boundary"),exportButton=document.getElementById("export-data");
 const emptyGeoJson={type:"FeatureCollection",features:[]};
 const earthRadius=6371008.8,searchHalfWidth=20000,searchHalfHeight=30000;
 const overpassEndpoints=["https://overpass-api.de/api/interpreter","https://ovp.dresel.systems/api/interpreter"];
 let waterPoints=emptyGeoJson,waterRequest,map;
+const pilotKey="vaskor-knowledge-pilot-v1";
+let pilotData;try{const stored=JSON.parse(localStorage.getItem(pilotKey));pilotData=stored?.model_version==="1.0"?stored:emptyPilotDataset()}catch{pilotData=emptyPilotDataset()}
+const updateExportLabel=()=>{exportButton.textContent=`Exporteer veldtest · ${pilotData.knowledge_objects.length}`};updateExportLabel();
 function searchBounds(longitude,latitude){
  const latitudeDelta=searchHalfHeight/earthRadius*180/Math.PI;
  const longitudeDelta=searchHalfWidth/(earthRadius*Math.max(Math.cos(latitude*Math.PI/180),1e-12))*180/Math.PI;
@@ -32,12 +38,13 @@ function boundaryFeature(bounds){
  const {south,west,north,east}=bounds;
  return {type:"FeatureCollection",features:[{type:"Feature",properties:{widthMeters:searchHalfWidth*2,heightMeters:searchHalfHeight*2},geometry:{type:"Polygon",coordinates:[[[west,south],[east,south],[east,north],[west,north],[west,south]]]}}]};
 }
+function distanceMeters(a,b){const rad=value=>value*Math.PI/180,[lon1,lat1]=a,[lon2,lat2]=b,dLat=rad(lat2-lat1),dLon=rad(lon2-lon1),h=Math.sin(dLat/2)**2+Math.cos(rad(lat1))*Math.cos(rad(lat2))*Math.sin(dLon/2)**2;return Math.round(earthRadius*2*Math.atan2(Math.sqrt(h),Math.sqrt(1-h)))}
 async function findWaterPoints(longitude,latitude){
  if(waterRequest?.controller)waterRequest.controller.abort();
  waterPoints=emptyGeoJson;const source=map.getSource("osm-water");if(source)source.setData(waterPoints);
  const {south,west,north,east}=searchBounds(longitude,latitude);
- const query=`[out:json][timeout:45];(nwr["amenity"="drinking_water"](${south},${west},${north},${east});nwr["amenity"="water_point"](${south},${west},${north},${east}););out center;`;
- status.textContent="OpenStreetMap wordt doorzocht binnen de zoekgrens van 40 × 60 km…";
+ const query=`[out:json][timeout:45];(nwr["amenity"="drinking_water"](${south},${west},${north},${east});nwr["amenity"="water_point"](${south},${west},${north},${east});nwr["amenity"="toilets"](${south},${west},${north},${east}););out center;`;
+ status.textContent="OpenStreetMap wordt doorzocht op water en sanitair binnen de zoekgrens van 40 × 60 km…";
  let data,lastError;
  const request={controller:null};waterRequest=request;
  for(const [endpointIndex,endpoint] of overpassEndpoints.entries()){
@@ -59,11 +66,12 @@ async function findWaterPoints(longitude,latitude){
   const features=(data.elements||[]).flatMap(element=>{
    const lon=element.lon??element.center?.lon,lat=element.lat??element.center?.lat;
    if(!Number.isFinite(lon)||!Number.isFinite(lat)||lat<south||lat>north||lon<west||lon>east)return [];
-   return [{type:"Feature",geometry:{type:"Point",coordinates:[lon,lat]},properties:{osmType:element.type,osmId:element.id,version:element.version,timestamp:element.timestamp,tags:element.tags||{}}}];
+   const tags=element.tags||{},category=tags.amenity==="toilets"?"sanitary":"water";
+   return [{type:"Feature",geometry:{type:"Point",coordinates:[lon,lat]},properties:{osmType:element.type,osmId:element.id,version:element.version,timestamp:element.timestamp,category,tags}}];
   });
   waterPoints={type:"FeatureCollection",features};
   const pointSource=map.getSource("osm-water");if(pointSource)pointSource.setData(waterPoints);
-  status.textContent=features.length?`${features.length} ruwe OSM-kandidaten gevonden binnen de zoekgrens van 40 × 60 km. Dit zijn ongeverifieerde brongegevens; toegankelijkheid, drinkbaarheid, gratis gebruik en openingstijden zijn niet door VASKOR bevestigd.`:"Geen drinkwaterpunten gevonden in OpenStreetMap binnen de zoekgrens van 40 × 60 km. Dit betekent niet dat er ter plaatse geen punten zijn.";
+  status.textContent=features.length?`${features.length} ruwe OSM-kandidaten voor water en sanitair gevonden. Toegankelijkheid, kosten en openingstijden zijn niet door VASKOR bevestigd.`:"Geen water- of sanitairkandidaten gevonden binnen de zoekgrens. Dit betekent niet dat er ter plaatse geen voorzieningen zijn.";
  }catch(error){
   if(request!==waterRequest)return;
   status.textContent=error.name==="AbortError"?"De OpenStreetMap-zoekopdracht duurde te lang op beide servers. Probeer het later opnieuw.":error.message?.startsWith("overpass-")?`OpenStreetMap is tijdelijk niet beschikbaar (HTTP ${error.message.slice(9)}). Probeer het later opnieuw.`:"De OpenStreetMap-gegevens konden niet worden opgehaald. Controleer je verbinding en probeer het opnieuw.";
@@ -71,12 +79,28 @@ async function findWaterPoints(longitude,latitude){
 }
 function showOsmPopup(feature,ml){
  const props=feature.properties,tags=props.tags||{},content=document.createElement("div");content.className="osm-popup";
- const title=document.createElement("h2");title.textContent=tags.name||tags["name:en"]||"Drinkwaterpunt (OSM)";content.append(title);
+ const category=props.category||"water",label=category==="sanitary"?"Sanitaire voorziening":"Drinkwaterpunt";
+ const title=document.createElement("h2");title.textContent=tags.name||tags["name:en"]||`${label} (OSM)`;content.append(title);
  const note=document.createElement("p");note.textContent=`OpenStreetMap · ${props.osmType} ${props.osmId} · versie ${props.version??"onbekend"}${props.timestamp?` · OSM-bewerking ${props.timestamp}`:""} · ongetoetste brondata`;content.append(note);
  const list=document.createElement("dl");Object.entries(tags).sort(([a],[b])=>a.localeCompare(b)).forEach(([key,value])=>{const term=document.createElement("dt"),description=document.createElement("dd");term.textContent=key;description.textContent=value;list.append(term,description)});content.append(list);
  const link=document.createElement("a");link.href=`https://www.openstreetmap.org/${encodeURIComponent(props.osmType)}/${props.osmId}`;link.target="_blank";link.rel="noopener noreferrer";link.textContent="Bekijk bronobject";content.append(link);
+ const capture=document.createElement("button");capture.type="button";capture.className="capture";capture.textContent="Ik zie deze voorziening ter plaatse";capture.addEventListener("click",()=>{
+  if(!navigator.geolocation){status.textContent="Locatietoegang is nodig om een veldwaarneming vast te leggen.";return}
+  capture.disabled=true;capture.textContent="Telefoonlocatie controleren…";
+  navigator.geolocation.getCurrentPosition(({coords})=>{
+   const stamp=new Date().toISOString(),phoneLocation=[coords.longitude,coords.latitude],offset=distanceMeters(feature.geometry.coordinates,phoneLocation);
+   addFieldObservation(pilotData,{category,osmType:props.osmType,osmId:props.osmId,name:tags.name||tags["name:en"]||label,coordinates:feature.geometry.coordinates,observationLocation:phoneLocation,accuracyMeters:Math.round(coords.accuracy),distanceMeters:offset,observedAt:stamp,createId:()=>crypto.randomUUID()});
+   try{localStorage.setItem(pilotKey,JSON.stringify(pilotData))}catch{status.textContent="De telefoon kon de waarneming niet lokaal bewaren. Exporteer minder waarnemingen of probeer opnieuw.";capture.disabled=false;capture.textContent="Probeer opnieuw";return}
+   updateExportLabel();capture.textContent="Waarneming toegevoegd op deze telefoon";
+   status.textContent=`Veldwaarneming lokaal opgeslagen. Je telefoon was ${offset} m van de OSM-locatie (GPS-nauwkeurigheid ±${Math.round(coords.accuracy)} m). Dit bevestigt alleen wat je zelf hebt waargenomen; andere eigenschappen blijven onbevestigd.`;
+  },error=>{capture.disabled=false;capture.textContent="Ik zie deze voorziening ter plaatse";status.textContent=error.code===1?"Locatietoegang geweigerd; er is geen waarneming vastgelegd.":"Telefoonlocatie niet beschikbaar; probeer opnieuw."},{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+ });content.append(capture);
  new ml.Popup({maxWidth:"none"}).setLngLat(feature.geometry.coordinates).setDOMContent(content).addTo(map);
 }
+exportButton.addEventListener("click",()=>{
+ const blob=new Blob([JSON.stringify(pilotData,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download=`vaskor-field-pilot-${new Date().toISOString().slice(0,10)}.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ if(!pilotData.knowledge_objects.length)status.textContent="Nog geen veldwaarnemingen. Tik een OSM-kandidaat aan en bevestig alleen wat je ter plaatse zelf ziet.";
+});
 try{
  const ml=await import("https://unpkg.com/maplibre-gl@6.16.0/dist/maplibre-gl.mjs");
  map=new ml.Map({container:"map",style:"https://tiles.openfreemap.org/styles/positron",center:[5.3,52.1],zoom:7,minZoom:3,maxZoom:18,cooperativeGestures:true});
@@ -86,10 +110,10 @@ try{
   map.addLayer({id:"search-boundary-fill",type:"fill",source:"search-boundary",paint:{"fill-color":"#2c8a72","fill-opacity":0.08}});
   map.addLayer({id:"search-boundary-line",type:"line",source:"search-boundary",paint:{"line-color":"#176452","line-width":2,"line-dasharray":[2,1.5]}});
   map.addSource("osm-water",{type:"geojson",data:waterPoints});
-  map.addLayer({id:"osm-water-points",type:"circle",source:"osm-water",paint:{"circle-radius":["interpolate",["linear"],["zoom"],5,4,12,7],"circle-color":"#d28735","circle-stroke-color":"#fff","circle-stroke-width":1.5}});
+  map.addLayer({id:"osm-water-points",type:"circle",source:"osm-water",paint:{"circle-radius":["interpolate",["linear"],["zoom"],5,4,12,7],"circle-color":["match",["get","category"],"sanitary","#7865b2","#d28735"],"circle-stroke-color":"#fff","circle-stroke-width":1.5}});
   map.on("click","osm-water-points",event=>{const feature=event.features?.[0];if(feature)showOsmPopup(feature,ml)});
   map.on("mouseenter","osm-water-points",()=>{map.getCanvas().style.cursor="pointer"});map.on("mouseleave","osm-water-points",()=>{map.getCanvas().style.cursor=""});
-  status.textContent="Kaart klaar. ‘Mijn locatie’ centreert de kaart; zoek OSM-waterbronnen apart wanneer je dat wilt.";
+  status.textContent="Kaart klaar. Centreer met ‘Mijn locatie’ en zoek daarna naar water en sanitair wanneer je dat wilt.";
  });
  map.on("error",()=>{status.textContent="Kaartgegevens zijn niet volledig beschikbaar. Controleer je verbinding; je kunt de pagina later opnieuw proberen."});
  button.addEventListener("click",()=>{

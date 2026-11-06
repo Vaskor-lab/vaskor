@@ -8,7 +8,7 @@ This repository contains the technical implementation and test environment of VA
 
 ## Current development focus
 
-The first production-oriented test is the construction of a small, sourceable knowledge network around **Toprope**.
+The current model test uses real-world drinking-water and sanitary facilities as examples. It tests whether one general knowledge structure can distinguish source records, observed objects, claims and supported relations across categories.
 
 The goal is not to create a large dataset. The goal is to test whether VASKOR can support a disciplined workflow in which human knowledge is turned into reusable knowledge objects and explicit relationships, then exposed through a minimal technical implementation.
 
@@ -25,7 +25,7 @@ The goal is not to create a large dataset. The goal is to test whether VASKOR ca
 
 ## Map start screen
 
-The initial map screen is a static page in `index.html`; it adds no framework or build step. MapLibre GL JS is loaded from the UNPKG CDN (version 6.16.0). The map style and vector tiles are served by the public OpenFreeMap service, using its Positron style. The browser only requests location after the visitor presses **Mijn locatie**.
+The map is a static page in `index.html`; it adds no framework or build step. MapLibre GL JS is loaded from the UNPKG CDN (version 6.16.0). The map style and vector tiles are served by the public OpenFreeMap service, using its Positron style. The browser requests location only after the visitor presses **Mijn locatie** or explicitly records a field observation.
 
 These external services are required for the map. The public OpenFreeMap service is provided without an uptime guarantee, so the map may be unavailable or change; the page displays a small status message if the map cannot load. Browser location also depends on permission, device settings, and a secure origin (HTTPS, or localhost).
 
@@ -41,8 +41,31 @@ Open [http://localhost:8000](http://localhost:8000). Stop the local server with 
 
 ### Publishing
 
-The repository contains a `CNAME` for `vaskor.org`, but that file alone does not confirm that GitHub Pages is enabled or that the domain currently serves this branch. To publish through GitHub Pages, open **Settings → Pages**, select deployment from branch, choose `main` and `/(root)`, and save. Confirm the custom domain and HTTPS status there before sharing a public test URL.
+The public repository is `Vaskor-lab/vaskor`; its default branch is `main`, GitHub Pages is enabled, and the repository's Pages build-and-deployment workflow has completed successfully for recent `main` commits. The root `CNAME` names `vaskor.org`. DNS remains managed separately at TransIP and is not changed as part of repository publishing.
 
 ## Repository status
 
 Initial development environment established September 2026.
+
+## Kennismodel v1.0
+
+The v1.0 implementation specification is in `knowledge/model-v1.0.md`. Validate its standalone JSON datasets with the dependency-free Node.js validator:
+
+```sh
+node knowledge/validator.mjs tests/fixtures/representative-v1.0.json
+node --test tests/validator.test.mjs
+```
+
+The fixture contains synthetic test data only. The existing `knowledge/objects`, `knowledge/types`, and `knowledge/relations` files are retained as the legacy knowledge layer and have not been silently migrated.
+
+### Phone field test
+
+The live map can search OpenStreetMap for drinking-water points and toilets. Tap a candidate only when you are physically there and can confirm that the facility is visible. The phone records its current GPS position and accuracy as support for that observation. This records presence at that moment; it does not establish drinking-water quality, free access, opening hours, or continued availability.
+
+Each phone keeps its test records in that browser only. Use **Exporteer veldtest** to download a v1.0 JSON dataset from each device. The page does not upload observations. Validate an exported file on a computer with:
+
+```sh
+node knowledge/validator.mjs path/to/vaskor-field-pilot.json
+```
+
+The pilot data stays outside the repository unless it is deliberately reviewed and added later. Do not treat raw OSM candidates as confirmed real-world objects; the explicit field observation creates the object and the supported `represents` relation.
