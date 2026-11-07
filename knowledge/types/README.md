@@ -4,4 +4,4 @@
 
 De feitelijke waterbron is een afzonderlijk kennisobject wanneer die onafhankelijk is vastgesteld. Koppel die dan expliciet vanuit de representatie via `represents` of via een betekenisvolle relatie in `related_objects`. Laat de relatie leeg zolang verificatie ontbreekt. De interface toont OSM-resultaten als ongeverifieerde brongegevens en kent zelf geen VASKOR-kwalificatie toe.
 
-Zoeken gebeurt uitsluitend na een expliciete druk op **Zoek OSM-waterbronnen hier**. De zoekactie gebruikt het huidige kaartmiddelpunt, behoudt de vaste grens van 40 × 60 km en probeert de bestaande Overpass-fallbackservers. **Mijn locatie** vraagt alleen GPS op, bepaalt de positie, toont de grens en centreert de kaart.
+Zoeken gebeurt uitsluitend na een expliciete druk op **Zoek voorzieningen**. De zoekactie vraagt een verse GPS-fix op en gebruikt die als middelpunt van de rechthoek van 30 km oost-west × 60 km noord-zuid. Kaartgrens, Overpass-query en lokale kandidaatfilter delen dezelfde grenzen. De bestaande Overpass-fallbackservers blijven beschikbaar. **Mijn locatie** vraagt GPS op, bepaalt de positie, toont de grens en centreert de kaart.
