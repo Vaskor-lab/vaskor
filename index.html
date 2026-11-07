@@ -25,7 +25,7 @@ const status=document.getElementById("status"),button=document.getElementById("l
 const emptyGeoJson={type:"FeatureCollection",features:[]};
 const earthRadius=6371008.8,searchHalfWidth=20000,searchHalfHeight=30000;
 const overpassEndpoints=["https://overpass-api.de/api/interpreter","https://ovp.dresel.systems/api/interpreter"];
-let waterPoints=emptyGeoJson,waterRequest,map;
+let waterPoints=emptyGeoJson,waterRequest,map,locationWatchId=null,locationPopup=null;
 const pilotKey="vaskor-knowledge-pilot-v1";
 let pilotData;try{const stored=JSON.parse(localStorage.getItem(pilotKey));pilotData=stored?.model_version==="1.0"?stored:emptyPilotDataset()}catch{pilotData=emptyPilotDataset()}
 const updateExportLabel=()=>{exportButton.textContent=`Exporteer veldtest · ${pilotData.knowledge_objects.length}`};updateExportLabel();
@@ -40,27 +40,30 @@ function boundaryFeature(bounds){
 }
 function distanceMeters(a,b){const rad=value=>value*Math.PI/180,[lon1,lat1]=a,[lon2,lat2]=b,dLat=rad(lat2-lat1),dLon=rad(lon2-lon1),h=Math.sin(dLat/2)**2+Math.cos(rad(lat1))*Math.cos(rad(lat2))*Math.sin(dLon/2)**2;return Math.round(earthRadius*2*Math.atan2(Math.sqrt(h),Math.sqrt(1-h)))}
 async function findWaterPoints(longitude,latitude){
- if(waterRequest?.controller)waterRequest.controller.abort();
+ if(waterRequest){waterRequest.done=true;waterRequest.controllers?.forEach(controller=>controller.abort())}
  waterPoints=emptyGeoJson;const source=map.getSource("osm-water");if(source)source.setData(waterPoints);
  const {south,west,north,east}=searchBounds(longitude,latitude);
  const query=`[out:json][timeout:45];(nwr["amenity"="drinking_water"](${south},${west},${north},${east});nwr["amenity"="water_point"](${south},${west},${north},${east});nwr["amenity"="toilets"](${south},${west},${north},${east}););out center;`;
  status.textContent="OpenStreetMap wordt doorzocht op water en sanitair binnen de zoekgrens van 40 × 60 km…";
  let data,lastError;
- const request={controller:null};waterRequest=request;
- for(const [endpointIndex,endpoint] of overpassEndpoints.entries()){
-  if(endpointIndex)status.textContent="Eerste OpenStreetMap-server reageert niet op tijd; tweede server wordt geprobeerd…";
-  const controller=new AbortController();request.controller=controller;
+ const request={controllers:[]};waterRequest=request;
+ const runEndpoint=async(endpoint,index)=>{
+  if(request.done)throw new Error("request-finished");
+  if(index)status.textContent="Eerste OpenStreetMap-server reageert langzaam; tweede server wordt geprobeerd…";
+  const controller=new AbortController();request.controllers.push(controller);
   const timer=setTimeout(()=>controller.abort(),55000);
   try{
    const response=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},body:new URLSearchParams({data:query}),signal:controller.signal});
    if(!response.ok)throw new Error(`overpass-${response.status}`);
-   data=await response.json();
-   if(request!==waterRequest)return;
-   lastError=null;clearTimeout(timer);break;
-  }catch(error){
-   clearTimeout(timer);if(request!==waterRequest)return;lastError=error;
-  }
- }
+   return await response.json();
+  }finally{clearTimeout(timer)}
+ };
+ const primary=runEndpoint(overpassEndpoints[0],0);
+ let fallbackTimer;
+ const primarySettled=primary.then(()=>{clearTimeout(fallbackTimer);return new Promise(()=>{})},()=>{clearTimeout(fallbackTimer);return undefined});
+ const fallback=Promise.race([primarySettled,new Promise(resolve=>{fallbackTimer=setTimeout(resolve,8000)})]).then(()=>runEndpoint(overpassEndpoints[1],1));
+ try{data=await Promise.any([primary,fallback]);clearTimeout(fallbackTimer);if(request!==waterRequest)return;request.done=true;request.controllers.forEach(controller=>controller.abort())}
+ catch(error){clearTimeout(fallbackTimer);if(request!==waterRequest)return;request.done=true;lastError=error.errors?.find(item=>item.message?.startsWith("overpass-"))||error.errors?.[0]||error}
  try{
   if(lastError||!data)throw lastError||new Error("overpass-empty-response");
   const features=(data.elements||[]).flatMap(element=>{
@@ -89,13 +92,15 @@ function showOsmPopup(feature,ml){
   capture.disabled=true;capture.textContent="Telefoonlocatie controleren…";
   navigator.geolocation.getCurrentPosition(({coords})=>{
    const stamp=new Date().toISOString(),phoneLocation=[coords.longitude,coords.latitude],offset=distanceMeters(feature.geometry.coordinates,phoneLocation);
-   addFieldObservation(pilotData,{category,osmType:props.osmType,osmId:props.osmId,name:tags.name||tags["name:en"]||label,coordinates:feature.geometry.coordinates,observationLocation:phoneLocation,accuracyMeters:Math.round(coords.accuracy),distanceMeters:offset,observedAt:stamp,createId:()=>crypto.randomUUID()});
-   try{localStorage.setItem(pilotKey,JSON.stringify(pilotData))}catch{status.textContent="De telefoon kon de waarneming niet lokaal bewaren. Exporteer minder waarnemingen of probeer opnieuw.";capture.disabled=false;capture.textContent="Probeer opnieuw";return}
+   const nextPilotData=structuredClone(pilotData);
+   addFieldObservation(nextPilotData,{category,osmType:props.osmType,osmId:props.osmId,name:tags.name||tags["name:en"]||label,coordinates:feature.geometry.coordinates,observationLocation:phoneLocation,accuracyMeters:Math.round(coords.accuracy),distanceMeters:offset,observedAt:stamp,createId:()=>crypto.randomUUID()});
+   try{localStorage.setItem(pilotKey,JSON.stringify(nextPilotData))}catch{status.textContent="De telefoon kon de waarneming niet lokaal bewaren. Exporteer minder waarnemingen of probeer opnieuw.";capture.disabled=false;capture.textContent="Probeer opnieuw";return}
+   pilotData=nextPilotData;
    updateExportLabel();capture.textContent="Waarneming toegevoegd op deze telefoon";
    status.textContent=`Veldwaarneming lokaal opgeslagen. Je telefoon was ${offset} m van de OSM-locatie (GPS-nauwkeurigheid ±${Math.round(coords.accuracy)} m). Dit bevestigt alleen wat je zelf hebt waargenomen; andere eigenschappen blijven onbevestigd.`;
   },error=>{capture.disabled=false;capture.textContent="Ik zie deze voorziening ter plaatse";status.textContent=error.code===1?"Locatietoegang geweigerd; er is geen waarneming vastgelegd.":"Telefoonlocatie niet beschikbaar; probeer opnieuw."},{enableHighAccuracy:true,timeout:20000,maximumAge:0});
  });content.append(capture);
- new ml.Popup({maxWidth:"none"}).setLngLat(feature.geometry.coordinates).setDOMContent(content).addTo(map);
+ locationPopup?.remove();locationPopup=new ml.Popup({maxWidth:"none"}).setLngLat(feature.geometry.coordinates).setDOMContent(content).addTo(map);
 }
 exportButton.addEventListener("click",()=>{
  const blob=new Blob([JSON.stringify(pilotData,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download=`vaskor-field-pilot-${new Date().toISOString().slice(0,10)}.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
@@ -110,30 +115,31 @@ try{
   map.addLayer({id:"search-boundary-fill",type:"fill",source:"search-boundary",paint:{"fill-color":"#2c8a72","fill-opacity":0.08}});
   map.addLayer({id:"search-boundary-line",type:"line",source:"search-boundary",paint:{"line-color":"#176452","line-width":2,"line-dasharray":[2,1.5]}});
   map.addSource("osm-water",{type:"geojson",data:waterPoints});
-  map.addLayer({id:"osm-water-points",type:"circle",source:"osm-water",paint:{"circle-radius":["interpolate",["linear"],["zoom"],5,4,12,7],"circle-color":["match",["get","category"],"sanitary","#7865b2","#d28735"],"circle-stroke-color":"#fff","circle-stroke-width":1.5}});
+  map.addLayer({id:"osm-water-points",type:"circle",source:"osm-water",paint:{"circle-radius":["interpolate",["linear"],["zoom"],5,3,12,5],"circle-color":["match",["get","category"],"sanitary","#7865b2","#d28735"],"circle-stroke-color":"#fff","circle-stroke-width":1.5}});
   map.on("click","osm-water-points",event=>{const feature=event.features?.[0];if(feature)showOsmPopup(feature,ml)});
   map.on("mouseenter","osm-water-points",()=>{map.getCanvas().style.cursor="pointer"});map.on("mouseleave","osm-water-points",()=>{map.getCanvas().style.cursor=""});
   status.textContent="Kaart klaar. Centreer met ‘Mijn locatie’ en zoek daarna naar water en sanitair wanneer je dat wilt.";
  });
  map.on("error",()=>{status.textContent="Kaartgegevens zijn niet volledig beschikbaar. Controleer je verbinding; je kunt de pagina later opnieuw proberen."});
- button.addEventListener("click",()=>{
-  if(!navigator.geolocation){status.textContent="Locatiebepaling is niet beschikbaar in deze browser.";return}
-  button.disabled=true;status.textContent="Locatietoestemming wordt gevraagd…";
-  navigator.geolocation.getCurrentPosition(({coords})=>{
+ const updateOwnLocation=({coords},initial=false)=>{
    const point=[coords.longitude,coords.latitude];
-   if(!Number.isFinite(point[0])||!Number.isFinite(point[1])||point[0]<-180||point[0]>180||point[1]<-90||point[1]>90){
-    status.textContent="Je locatie kon niet worden bepaald. Controleer de locatievoorzieningen en probeer opnieuw.";button.disabled=false;return;
-   }
+   if(!Number.isFinite(point[0])||!Number.isFinite(point[1])||point[0]<-180||point[0]>180||point[1]<-90||point[1]>90)return;
    if(!marker)marker=new ml.Marker({color:"#23473e"}).setLngLat(point).addTo(map);else marker.setLngLat(point);
-   const bounds=searchBounds(point[0],point[1]);
-   searchArea=boundaryFeature(bounds);
+   const bounds=searchBounds(point[0],point[1]);searchArea=boundaryFeature(bounds);
    const source=map.getSource("search-boundary");if(source)source.setData(searchArea);
    boundaryLabel.hidden=false;
-   map.fitBounds([[bounds.west,bounds.south],[bounds.east,bounds.north]],{padding:{top:128,right:48,bottom:72,left:48},maxZoom:8,duration:800});
-   button.disabled=false;
-  },error=>{
+   if(initial)map.fitBounds([[bounds.west,bounds.south],[bounds.east,bounds.north]],{padding:{top:128,right:48,bottom:72,left:48},maxZoom:8,duration:800});
+   else map.easeTo({center:point,duration:350});
+   button.textContent="Stop locatie volgen";button.disabled=false;
+   status.textContent=`Je locatie wordt live gevolgd op de kaart (GPS-nauwkeurigheid ±${Math.round(coords.accuracy)} m). Volgen stopt wanneer je opnieuw tikt.`;
+  };
+ button.addEventListener("click",()=>{
+  if(locationWatchId!==null){navigator.geolocation.clearWatch(locationWatchId);locationWatchId=null;button.textContent="Mijn locatie";status.textContent="Locatie volgen gestopt.";return}
+  if(!navigator.geolocation){status.textContent="Locatiebepaling is niet beschikbaar in deze browser.";return}
+  button.disabled=true;status.textContent="Locatietoestemming wordt gevraagd…";
+  locationWatchId=navigator.geolocation.watchPosition(position=>updateOwnLocation(position,!marker),error=>{
    status.textContent=({1:"Geen toegang tot je locatie. De kaart blijft bruikbaar.",2:"Je locatie kon niet worden bepaald. Controleer de locatievoorzieningen en probeer opnieuw.",3:"Locatie bepalen duurde te lang. Probeer opnieuw."})[error.code]||"Locatiebepaling is niet gelukt. De kaart blijft bruikbaar.";
-   button.disabled=false;
+   if(locationWatchId!==null)navigator.geolocation.clearWatch(locationWatchId);locationWatchId=null;button.disabled=false;button.textContent="Mijn locatie";
   },{enableHighAccuracy:true,timeout:20000,maximumAge:0});
  });
  searchButton.addEventListener("click",()=>{const center=map.getCenter();findWaterPoints(center.lng,center.lat)});
