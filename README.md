@@ -73,7 +73,10 @@ The pilot data stays outside the repository unless it is deliberately reviewed a
 ### Manual map regression checks
 
 - Open the page without granting location access. Confirm no location prompt or OSM search occurs on load.
-- Pan the map away from your device. Tap **Zoek voorzieningen** and confirm the browser asks for location only then; the search recenters on the returned GPS fix.
+- Pan the map away from your device. Tap **Mijn locatie** and confirm the map follows the GPS position; tap **Stop volgen** and confirm updates stop without navigation.
+- Collapse and reopen the status and search-area panels using their arrow icons.
+- Tap **Zoek voorzieningen** and confirm the browser asks for a fresh location only then; the search recenters on that fix.
 - Confirm the displayed rectangle is labeled 30 km east-west by 60 km north-south from GPS and that status messages identify the GPS origin. Deny location or disable GPS and confirm no search runs.
+- If the first Overpass server is unavailable or slow while the second succeeds, confirm there is no intermediate failure message and only the result count appears. Confirm an error appears only when both servers fail.
 - Confirm water and toilet candidates appear only after the explicit search, and that the result status calls them unverified OSM candidates.
 - In browser developer tools, block local storage writes and try to record a field observation. Confirm the export count stays unchanged; restore storage and retry, then confirm exactly one observation is exported.
