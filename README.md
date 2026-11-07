@@ -25,7 +25,7 @@ The goal is not to create a large dataset. The goal is to test whether VASKOR ca
 
 ## Map start screen
 
-The map is a static page in `index.html`; it adds no framework or build step. MapLibre GL JS is loaded from the UNPKG CDN (version 6.16.0). The map style and vector tiles are served by the public OpenFreeMap service, using its Positron style. The browser requests location only after the visitor presses **Mijn locatie** or explicitly records a field observation.
+The map is a static page in `index.html`; it adds no framework or build step. MapLibre GL JS is loaded from the UNPKG CDN (version 6.16.0). The map style and vector tiles are served by the public OpenFreeMap service, using its Positron style. The browser requests location only after the visitor presses **Mijn locatie**, explicitly searches, or records a field observation. A search asks for a fresh GPS fix and uses that exact fix as its origin; it does not use the map center or an estimated location.
 
 These external services are required for the map. The public OpenFreeMap service is provided without an uptime guarantee, so the map may be unavailable or change; the page displays a small status message if the map cannot load. Browser location also depends on permission, device settings, and a secure origin (HTTPS, or localhost).
 
@@ -69,3 +69,11 @@ node knowledge/validator.mjs path/to/vaskor-field-pilot.json
 ```
 
 The pilot data stays outside the repository unless it is deliberately reviewed and added later. Do not treat raw OSM candidates as confirmed real-world objects; the explicit field observation creates the object and the supported `represents` relation.
+
+### Manual map regression checks
+
+- Open the page without granting location access. Confirm no location prompt or OSM search occurs on load.
+- Pan the map away from your device. Tap **Zoek voorzieningen** and confirm the browser asks for location only then; the search recenters on the returned GPS fix.
+- Confirm the displayed rectangle is labeled 30 km east-west by 60 km north-south from GPS and that status messages identify the GPS origin. Deny location or disable GPS and confirm no search runs.
+- Confirm water and toilet candidates appear only after the explicit search, and that the result status calls them unverified OSM candidates.
+- In browser developer tools, block local storage writes and try to record a field observation. Confirm the export count stays unchanged; restore storage and retry, then confirm exactly one observation is exported.

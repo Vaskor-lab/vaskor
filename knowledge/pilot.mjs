@@ -47,3 +47,10 @@ export function addFieldObservation(dataset, observation) {
   });
   return dataset;
 }
+
+export function saveFieldObservation(dataset, observation, storage) {
+  const nextDataset = structuredClone(dataset);
+  addFieldObservation(nextDataset, observation);
+  storage.setItem('vaskor-knowledge-pilot-v1', JSON.stringify(nextDataset));
+  return nextDataset;
+}

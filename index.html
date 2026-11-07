@@ -15,36 +15,28 @@
 <div id="map" role="region" aria-label="Interactieve kaart" aria-describedby="status"></div>
 <header class="bar"><h1 class="brand">VASKOR</h1><div style="display:flex;gap:.5rem;pointer-events:auto"><button class="search-osm" id="search-osm" type="button" aria-describedby="status">Zoek voorzieningen</button><button class="locate" id="locate" type="button" aria-describedby="status">Mijn locatie</button></div></header>
 <p class="status" id="status" role="status" aria-live="polite">Kaart laden… Gebruik ‘Mijn locatie’ om de kaart te centreren. Voorzieningen zoeken gebeurt alleen wanneer je dat kiest.</p>
-<div class="search-boundary" id="search-boundary" hidden>Zoekgrens · 40 × 60 km<br>Kandidaten · ongeverifieerde OSM-brondata</div>
+<div class="search-boundary" id="search-boundary" hidden>Zoekgebied · 30 km oost-west × 60 km noord-zuid vanaf GPS<br>Kandidaten · ongeverifieerde OSM-brondata</div>
 <button id="export-data" type="button" aria-describedby="status">Exporteer veldtest · 0</button>
 </main>
 <noscript><p>Schakel JavaScript in om de kaart te gebruiken.</p></noscript>
 <script type="module">
-import {emptyPilotDataset,addFieldObservation} from "./knowledge/pilot.mjs";
+import {emptyPilotDataset,saveFieldObservation} from "./knowledge/pilot.mjs";
+import {isInsideSearchArea,overpassSearchQuery,searchBoundary} from "./knowledge/search-area.mjs";
 const status=document.getElementById("status"),button=document.getElementById("locate"),searchButton=document.getElementById("search-osm"),boundaryLabel=document.getElementById("search-boundary"),exportButton=document.getElementById("export-data");
 const emptyGeoJson={type:"FeatureCollection",features:[]};
-const earthRadius=6371008.8,searchHalfWidth=20000,searchHalfHeight=30000;
+const earthRadius=6371008.8;
 const overpassEndpoints=["https://overpass-api.de/api/interpreter","https://ovp.dresel.systems/api/interpreter"];
 let waterPoints=emptyGeoJson,waterRequest,map;
 const pilotKey="vaskor-knowledge-pilot-v1";
 let pilotData;try{const stored=JSON.parse(localStorage.getItem(pilotKey));pilotData=stored?.model_version==="1.0"?stored:emptyPilotDataset()}catch{pilotData=emptyPilotDataset()}
 const updateExportLabel=()=>{exportButton.textContent=`Exporteer veldtest · ${pilotData.knowledge_objects.length}`};updateExportLabel();
-function searchBounds(longitude,latitude){
- const latitudeDelta=searchHalfHeight/earthRadius*180/Math.PI;
- const longitudeDelta=searchHalfWidth/(earthRadius*Math.max(Math.cos(latitude*Math.PI/180),1e-12))*180/Math.PI;
- return {south:Math.max(-90,latitude-latitudeDelta),west:Math.max(-180,longitude-longitudeDelta),north:Math.min(90,latitude+latitudeDelta),east:Math.min(180,longitude+longitudeDelta)};
-}
-function boundaryFeature(bounds){
- const {south,west,north,east}=bounds;
- return {type:"FeatureCollection",features:[{type:"Feature",properties:{widthMeters:searchHalfWidth*2,heightMeters:searchHalfHeight*2},geometry:{type:"Polygon",coordinates:[[[west,south],[east,south],[east,north],[west,north],[west,south]]]}}]};
-}
+
 function distanceMeters(a,b){const rad=value=>value*Math.PI/180,[lon1,lat1]=a,[lon2,lat2]=b,dLat=rad(lat2-lat1),dLon=rad(lon2-lon1),h=Math.sin(dLat/2)**2+Math.cos(rad(lat1))*Math.cos(rad(lat2))*Math.sin(dLon/2)**2;return Math.round(earthRadius*2*Math.atan2(Math.sqrt(h),Math.sqrt(1-h)))}
 async function findWaterPoints(longitude,latitude){
  if(waterRequest?.controller)waterRequest.controller.abort();
  waterPoints=emptyGeoJson;const source=map.getSource("osm-water");if(source)source.setData(waterPoints);
- const {south,west,north,east}=searchBounds(longitude,latitude);
- const query=`[out:json][timeout:45];(nwr["amenity"="drinking_water"](${south},${west},${north},${east});nwr["amenity"="water_point"](${south},${west},${north},${east});nwr["amenity"="toilets"](${south},${west},${north},${east}););out center;`;
- status.textContent="OpenStreetMap wordt doorzocht op water en sanitair binnen de zoekgrens van 40 × 60 km…";
+ const query=overpassSearchQuery(longitude,latitude);
+ status.textContent="Actuele GPS-locatie vastgelegd. OpenStreetMap wordt doorzocht binnen het rechthoekige gebied van 30 × 60 km…";
  let data,lastError;
  const request={controller:null};waterRequest=request;
  for(const [endpointIndex,endpoint] of overpassEndpoints.entries()){
@@ -65,13 +57,13 @@ async function findWaterPoints(longitude,latitude){
   if(lastError||!data)throw lastError||new Error("overpass-empty-response");
   const features=(data.elements||[]).flatMap(element=>{
    const lon=element.lon??element.center?.lon,lat=element.lat??element.center?.lat;
-   if(!Number.isFinite(lon)||!Number.isFinite(lat)||lat<south||lat>north||lon<west||lon>east)return [];
+   if(!Number.isFinite(lon)||!Number.isFinite(lat)||!isInsideSearchArea(longitude,latitude,lon,lat))return [];
    const tags=element.tags||{},category=tags.amenity==="toilets"?"sanitary":"water";
    return [{type:"Feature",geometry:{type:"Point",coordinates:[lon,lat]},properties:{osmType:element.type,osmId:element.id,version:element.version,timestamp:element.timestamp,category,tags}}];
   });
   waterPoints={type:"FeatureCollection",features};
   const pointSource=map.getSource("osm-water");if(pointSource)pointSource.setData(waterPoints);
-  status.textContent=features.length?`${features.length} ruwe OSM-kandidaten voor water en sanitair gevonden. Toegankelijkheid, kosten en openingstijden zijn niet door VASKOR bevestigd.`:"Geen water- of sanitairkandidaten gevonden binnen de zoekgrens. Dit betekent niet dat er ter plaatse geen voorzieningen zijn.";
+  status.textContent=features.length?`${features.length} ruwe OSM-kandidaten voor water en sanitair gevonden binnen het rechthoekige gebied van 30 × 60 km vanaf je actuele GPS-locatie. Toegankelijkheid, kosten en openingstijden zijn niet door VASKOR bevestigd.`:"Geen water- of sanitairkandidaten gevonden binnen het rechthoekige gebied van 30 × 60 km vanaf je actuele GPS-locatie. Dit betekent niet dat er ter plaatse geen voorzieningen zijn.";
  }catch(error){
   if(request!==waterRequest)return;
   status.textContent=error.name==="AbortError"?"De OpenStreetMap-zoekopdracht duurde te lang op beide servers. Probeer het later opnieuw.":error.message?.startsWith("overpass-")?`OpenStreetMap is tijdelijk niet beschikbaar (HTTP ${error.message.slice(9)}). Probeer het later opnieuw.`:"De OpenStreetMap-gegevens konden niet worden opgehaald. Controleer je verbinding en probeer het opnieuw.";
@@ -89,8 +81,9 @@ function showOsmPopup(feature,ml){
   capture.disabled=true;capture.textContent="Telefoonlocatie controleren…";
   navigator.geolocation.getCurrentPosition(({coords})=>{
    const stamp=new Date().toISOString(),phoneLocation=[coords.longitude,coords.latitude],offset=distanceMeters(feature.geometry.coordinates,phoneLocation);
-   addFieldObservation(pilotData,{category,osmType:props.osmType,osmId:props.osmId,name:tags.name||tags["name:en"]||label,coordinates:feature.geometry.coordinates,observationLocation:phoneLocation,accuracyMeters:Math.round(coords.accuracy),distanceMeters:offset,observedAt:stamp,createId:()=>crypto.randomUUID()});
-   try{localStorage.setItem(pilotKey,JSON.stringify(pilotData))}catch{status.textContent="De telefoon kon de waarneming niet lokaal bewaren. Exporteer minder waarnemingen of probeer opnieuw.";capture.disabled=false;capture.textContent="Probeer opnieuw";return}
+   let nextPilotData;
+   try{nextPilotData=saveFieldObservation(pilotData,{category,osmType:props.osmType,osmId:props.osmId,name:tags.name||tags["name:en"]||label,coordinates:feature.geometry.coordinates,observationLocation:phoneLocation,accuracyMeters:Math.round(coords.accuracy),distanceMeters:offset,observedAt:stamp,createId:()=>crypto.randomUUID()},localStorage)}catch{status.textContent="De telefoon kon de waarneming niet lokaal bewaren. Exporteer minder waarnemingen of probeer opnieuw.";capture.disabled=false;capture.textContent="Probeer opnieuw";return}
+   pilotData=nextPilotData;
    updateExportLabel();capture.textContent="Waarneming toegevoegd op deze telefoon";
    status.textContent=`Veldwaarneming lokaal opgeslagen. Je telefoon was ${offset} m van de OSM-locatie (GPS-nauwkeurigheid ±${Math.round(coords.accuracy)} m). Dit bevestigt alleen wat je zelf hebt waargenomen; andere eigenschappen blijven onbevestigd.`;
   },error=>{capture.disabled=false;capture.textContent="Ik zie deze voorziening ter plaatse";status.textContent=error.code===1?"Locatietoegang geweigerd; er is geen waarneming vastgelegd.":"Telefoonlocatie niet beschikbaar; probeer opnieuw."},{enableHighAccuracy:true,timeout:20000,maximumAge:0});
@@ -125,18 +118,31 @@ try{
     status.textContent="Je locatie kon niet worden bepaald. Controleer de locatievoorzieningen en probeer opnieuw.";button.disabled=false;return;
    }
    if(!marker)marker=new ml.Marker({color:"#23473e"}).setLngLat(point).addTo(map);else marker.setLngLat(point);
-   const bounds=searchBounds(point[0],point[1]);
-   searchArea=boundaryFeature(bounds);
+   searchArea=searchBoundary(point[0],point[1]);
    const source=map.getSource("search-boundary");if(source)source.setData(searchArea);
    boundaryLabel.hidden=false;
-   map.fitBounds([[bounds.west,bounds.south],[bounds.east,bounds.north]],{padding:{top:128,right:48,bottom:72,left:48},maxZoom:8,duration:800});
+   map.easeTo({center:point,zoom:7,duration:800});
    button.disabled=false;
   },error=>{
    status.textContent=({1:"Geen toegang tot je locatie. De kaart blijft bruikbaar.",2:"Je locatie kon niet worden bepaald. Controleer de locatievoorzieningen en probeer opnieuw.",3:"Locatie bepalen duurde te lang. Probeer opnieuw."})[error.code]||"Locatiebepaling is niet gelukt. De kaart blijft bruikbaar.";
    button.disabled=false;
   },{enableHighAccuracy:true,timeout:20000,maximumAge:0});
  });
- searchButton.addEventListener("click",()=>{const center=map.getCenter();findWaterPoints(center.lng,center.lat)});
+ searchButton.addEventListener("click",()=>{
+  if(!navigator.geolocation){status.textContent="Locatiebepaling is niet beschikbaar. Zoeken vereist je actuele GPS-locatie; er is geen zoekactie uitgevoerd.";return}
+  searchButton.disabled=true;status.textContent="Actuele GPS-locatie wordt opgevraagd voor de zoekactie…";
+  navigator.geolocation.getCurrentPosition(({coords})=>{
+   const point=[coords.longitude,coords.latitude];
+   if(!Number.isFinite(point[0])||!Number.isFinite(point[1])||point[0]<-180||point[0]>180||point[1]<-90||point[1]>90){status.textContent="Je actuele locatie kon niet worden bepaald. Er is niet gezocht; probeer opnieuw.";searchButton.disabled=false;return}
+   if(!marker)marker=new ml.Marker({color:"#23473e"}).setLngLat(point).addTo(map);else marker.setLngLat(point);
+   searchArea=searchBoundary(point[0],point[1]);const source=map.getSource("search-boundary");if(source)source.setData(searchArea);boundaryLabel.hidden=false;
+   map.easeTo({center:point,zoom:7,duration:800});
+   findWaterPoints(point[0],point[1]).finally(()=>{searchButton.disabled=false});
+  },error=>{
+   status.textContent=({1:"Geen toegang tot je actuele locatie. Er is niet gezocht.",2:"Je actuele locatie kon niet worden bepaald. Er is niet gezocht; controleer je locatievoorzieningen.",3:"Actuele locatie bepalen duurde te lang. Er is niet gezocht; probeer opnieuw."})[error.code]||"Locatiebepaling is niet gelukt. Er is niet gezocht.";
+   searchButton.disabled=false;
+  },{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+ });
 }catch{
  status.textContent="De kaartmodule kon niet worden geladen. Controleer je verbinding; je locatie is niet opgevraagd.";
  button.addEventListener("click",()=>{status.textContent="De kaart is niet beschikbaar. Probeer de pagina opnieuw wanneer je verbinding hebt."});
