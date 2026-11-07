@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://unpkg.com" crossorigin><link rel="preconnect" href="https://tiles.openfreemap.org">
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.16.0/dist/maplibre-gl.css">
 <style>
-:root{font:16px system-ui,-apple-system,"Segoe UI",sans-serif;color:#26352f;background:#f3f5f1}*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0}#map{position:absolute;inset:0;background:#e9ece7}.bar{position:absolute;z-index:2;top:max(1rem,env(safe-area-inset-top));left:1rem;right:1rem;display:flex;justify-content:space-between;align-items:center;pointer-events:none}.brand,.locate,.status,.search-boundary{background:#ffffffed;box-shadow:0 2px 12px #26332d18;border-radius:.8rem}.brand{margin:0;padding:.7rem .9rem;font-size:.95rem;letter-spacing:.14em}.locate{pointer-events:auto;min-height:48px;padding:.7rem 1rem;border:0;background:#23473e;color:white;font:inherit;font-weight:600;cursor:pointer}.locate:focus-visible{outline:3px solid #d6973d;outline-offset:3px}.locate:disabled{opacity:.7}.search-osm{pointer-events:auto;min-height:48px;padding:.7rem 1rem;border:1px solid #23473e;background:#ffffffed;color:#23473e;border-radius:.8rem;font:inherit;font-weight:600;cursor:pointer}.search-osm:focus-visible{outline:3px solid #d6973d;outline-offset:3px}.search-osm:disabled{opacity:.7}.status{position:absolute;z-index:2;top:calc(max(1rem,env(safe-area-inset-top)) + 4rem);left:1rem;max-width:min(26rem,calc(100vw - 2rem));margin:0;padding:.6rem .8rem;color:#46534e;font-size:.875rem;line-height:1.4}.status:empty{display:none}.search-boundary{position:absolute;z-index:2;left:max(.75rem,env(safe-area-inset-left));bottom:max(.75rem,env(safe-area-inset-bottom));padding:.55rem .75rem;color:#174c42;font-size:.8125rem;font-weight:650;border:1px solid #174c4240}.search-boundary[hidden]{display:none}.maplibregl-popup-content{max-width:min(22rem,calc(100vw - 2rem));max-height:55vh;overflow:auto}.osm-popup h2{margin:0 0 .25rem;font-size:1rem}.osm-popup p{margin:.25rem 0;color:#5a655f;font-size:.8125rem}.osm-popup dl{display:grid;grid-template-columns:minmax(5rem,auto) 1fr;gap:.2rem .6rem;margin:.6rem 0 0;font-size:.8125rem;overflow-wrap:anywhere}.osm-popup dt{font-weight:650}.osm-popup dd{margin:0}.maplibregl-ctrl-bottom-right{right:max(.5rem,env(safe-area-inset-right));bottom:max(.4rem,env(safe-area-inset-bottom))}@media(max-width:420px){.bar{left:.75rem;right:.75rem}.status{left:.75rem;max-width:calc(100vw - 1.5rem)}}
+:root{font:16px system-ui,-apple-system,"Segoe UI",sans-serif;color:#26352f;background:#f3f5f1}*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0}#map{position:absolute;inset:0;background:#e9ece7}.bar{position:absolute;z-index:2;top:max(1rem,env(safe-area-inset-top));left:1rem;right:1rem;display:flex;justify-content:space-between;align-items:center;pointer-events:none}.brand,.locate,.status,.search-boundary{background:#ffffffed;box-shadow:0 2px 12px #26332d18;border-radius:.8rem}.brand{margin:0;padding:.7rem .9rem;font-size:.95rem;letter-spacing:.14em}.locate{pointer-events:auto;min-height:48px;padding:.7rem 1rem;border:0;background:#23473e;color:white;font:inherit;font-weight:600;cursor:pointer}.locate:focus-visible{outline:3px solid #d6973d;outline-offset:3px}.locate:disabled{opacity:.7}.search-osm{pointer-events:auto;min-height:48px;padding:.7rem 1rem;border:1px solid #23473e;background:#ffffffed;color:#23473e;border-radius:.8rem;font:inherit;font-weight:600;cursor:pointer}.search-osm:focus-visible{outline:3px solid #d6973d;outline-offset:3px}.search-osm:disabled{opacity:.7}.status{position:absolute;z-index:2;top:calc(max(1rem,env(safe-area-inset-top)) + 4rem);left:1rem;max-width:min(26rem,calc(100vw - 2rem));margin:0;padding:.6rem .8rem;color:#46534e;font-size:.875rem;line-height:1.4}.status:empty{display:none}.search-boundary{position:absolute;z-index:2;left:max(.75rem,env(safe-area-inset-left));bottom:max(.75rem,env(safe-area-inset-bottom));padding:.55rem .75rem;color:#174c42;font-size:.8125rem;font-weight:650;border:1px solid #174c4240}.search-boundary[hidden]{display:none}.panel-heading{display:flex;align-items:flex-start;gap:.4rem}.panel-copy{flex:1}.panel-toggle{flex:none;width:2rem;height:2rem;padding:0;border:1px solid #23473e40;border-radius:.55rem;background:#fff;color:#23473e;font:inherit;font-size:1rem;font-weight:700;line-height:1;cursor:pointer}.panel-toggle:focus-visible{outline:3px solid #d6973d;outline-offset:2px}.collapsible-panel.collapsed .panel-copy{display:none}.collapsible-panel.collapsed{padding:.25rem}.maplibregl-popup-content{max-width:min(22rem,calc(100vw - 2rem));max-height:55vh;overflow:auto}.osm-popup h2{margin:0 0 .25rem;font-size:1rem}.osm-popup p{margin:.25rem 0;color:#5a655f;font-size:.8125rem}.osm-popup dl{display:grid;grid-template-columns:minmax(5rem,auto) 1fr;gap:.2rem .6rem;margin:.6rem 0 0;font-size:.8125rem;overflow-wrap:anywhere}.osm-popup dt{font-weight:650}.osm-popup dd{margin:0}.maplibregl-ctrl-bottom-right{right:max(.5rem,env(safe-area-inset-right));bottom:max(.4rem,env(safe-area-inset-bottom))}@media(max-width:420px){.bar{left:.75rem;right:.75rem}.status{left:.75rem;max-width:calc(100vw - 1.5rem)}}
 #export-data{position:absolute;z-index:2;left:max(.75rem,env(safe-area-inset-left));bottom:calc(max(.75rem,env(safe-area-inset-bottom)) + 3.7rem);min-height:46px;padding:.55rem .75rem;border:1px solid #23473e;border-radius:.8rem;background:#ffffffed;color:#23473e;font:inherit;font-weight:600;box-shadow:0 2px 12px #26332d18}.capture{display:block;width:100%;margin-top:.75rem;min-height:44px;padding:.6rem .75rem;border:0;border-radius:.6rem;background:#23473e;color:white;font:inherit;font-weight:600;cursor:pointer}@media(max-width:520px){.brand{padding:.6rem;font-size:.8rem}.search-osm,.locate{min-height:44px;padding:.55rem .6rem;font-size:.78rem}}
 </style>
 </head>
@@ -14,8 +14,8 @@
 <main aria-label="VASKOR-kaart">
 <div id="map" role="region" aria-label="Interactieve kaart" aria-describedby="status"></div>
 <header class="bar"><h1 class="brand">VASKOR</h1><div style="display:flex;gap:.5rem;pointer-events:auto"><button class="search-osm" id="search-osm" type="button" aria-describedby="status">Zoek voorzieningen</button><button class="locate" id="locate" type="button" aria-describedby="status">Mijn locatie</button></div></header>
-<p class="status" id="status" role="status" aria-live="polite">Kaart laden… Gebruik ‘Mijn locatie’ om de kaart te centreren. Voorzieningen zoeken gebeurt alleen wanneer je dat kiest.</p>
-<div class="search-boundary" id="search-boundary" hidden>Zoekgebied · 30 km oost-west × 60 km noord-zuid vanaf GPS<br>Kandidaten · ongeverifieerde OSM-brondata</div>
+<div class="status collapsible-panel" id="status-panel"><div class="panel-heading"><span class="panel-copy" id="status" role="status" aria-live="polite">Kaart laden… Gebruik ‘Mijn locatie’ om de kaart te centreren. Voorzieningen zoeken gebeurt alleen wanneer je dat kiest.</span><button class="panel-toggle" type="button" aria-label="Statuspaneel inklappen" aria-expanded="true">⌃</button></div></div>
+<div class="search-boundary collapsible-panel" id="search-boundary" hidden><div class="panel-heading"><span class="panel-copy">Zoekgebied · 30 km oost-west × 60 km noord-zuid vanaf GPS<br>Kandidaten · ongeverifieerde OSM-brondata</span><button class="panel-toggle" type="button" aria-label="Zoekgebiedlabel inklappen" aria-expanded="true">⌃</button></div></div>
 <button id="export-data" type="button" aria-describedby="status">Exporteer veldtest · 0</button>
 </main>
 <noscript><p>Schakel JavaScript in om de kaart te gebruiken.</p></noscript>
@@ -23,10 +23,16 @@
 import {emptyPilotDataset,saveFieldObservation} from "./knowledge/pilot.mjs";
 import {isInsideSearchArea,overpassSearchQuery,searchBoundary} from "./knowledge/search-area.mjs";
 const status=document.getElementById("status"),button=document.getElementById("locate"),searchButton=document.getElementById("search-osm"),boundaryLabel=document.getElementById("search-boundary"),exportButton=document.getElementById("export-data");
+document.querySelectorAll(".panel-toggle").forEach(toggle=>toggle.addEventListener("click",()=>{
+ const panel=toggle.closest(".collapsible-panel"),collapsed=panel.classList.toggle("collapsed");
+ toggle.setAttribute("aria-expanded",String(!collapsed));
+ toggle.setAttribute("aria-label",`${panel.id==="status-panel"?"Statuspaneel":"Zoekgebiedlabel"} ${collapsed?"uitklappen":"inklappen"}`);
+ toggle.textContent=collapsed?"⌄":"⌃";
+}));
 const emptyGeoJson={type:"FeatureCollection",features:[]};
 const earthRadius=6371008.8;
 const overpassEndpoints=["https://overpass-api.de/api/interpreter","https://ovp.dresel.systems/api/interpreter"];
-let waterPoints=emptyGeoJson,waterRequest,map;
+let waterPoints=emptyGeoJson,waterRequest,map,followWatchId=null;
 const pilotKey="vaskor-knowledge-pilot-v1";
 let pilotData;try{const stored=JSON.parse(localStorage.getItem(pilotKey));pilotData=stored?.model_version==="1.0"?stored:emptyPilotDataset()}catch{pilotData=emptyPilotDataset()}
 const updateExportLabel=()=>{exportButton.textContent=`Exporteer veldtest · ${pilotData.knowledge_objects.length}`};updateExportLabel();
@@ -40,9 +46,8 @@ async function findWaterPoints(longitude,latitude){
  let data,lastError;
  const request={controller:null};waterRequest=request;
  for(const [endpointIndex,endpoint] of overpassEndpoints.entries()){
-  if(endpointIndex)status.textContent="Eerste OpenStreetMap-server reageert niet op tijd; tweede server wordt geprobeerd…";
   const controller=new AbortController();request.controller=controller;
-  const timer=setTimeout(()=>controller.abort(),55000);
+  const timer=setTimeout(()=>controller.abort(),15000);
   try{
    const response=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},body:new URLSearchParams({data:query}),signal:controller.signal});
    if(!response.ok)throw new Error(`overpass-${response.status}`);
@@ -63,7 +68,7 @@ async function findWaterPoints(longitude,latitude){
   });
   waterPoints={type:"FeatureCollection",features};
   const pointSource=map.getSource("osm-water");if(pointSource)pointSource.setData(waterPoints);
-  status.textContent=features.length?`${features.length} ruwe OSM-kandidaten voor water en sanitair gevonden binnen het rechthoekige gebied van 30 × 60 km vanaf je actuele GPS-locatie. Toegankelijkheid, kosten en openingstijden zijn niet door VASKOR bevestigd.`:"Geen water- of sanitairkandidaten gevonden binnen het rechthoekige gebied van 30 × 60 km vanaf je actuele GPS-locatie. Dit betekent niet dat er ter plaatse geen voorzieningen zijn.";
+  status.textContent=`${features.length} voorzieningen gevonden.`;
  }catch(error){
   if(request!==waterRequest)return;
   status.textContent=error.name==="AbortError"?"De OpenStreetMap-zoekopdracht duurde te lang op beide servers. Probeer het later opnieuw.":error.message?.startsWith("overpass-")?`OpenStreetMap is tijdelijk niet beschikbaar (HTTP ${error.message.slice(9)}). Probeer het later opnieuw.`:"De OpenStreetMap-gegevens konden niet worden opgehaald. Controleer je verbinding en probeer het opnieuw.";
@@ -109,7 +114,17 @@ try{
   status.textContent="Kaart klaar. Centreer met ‘Mijn locatie’ en zoek daarna naar water en sanitair wanneer je dat wilt.";
  });
  map.on("error",()=>{status.textContent="Kaartgegevens zijn niet volledig beschikbaar. Controleer je verbinding; je kunt de pagina later opnieuw proberen."});
+ const updatePosition=({coords})=>{
+   const point=[coords.longitude,coords.latitude];
+   if(!Number.isFinite(point[0])||!Number.isFinite(point[1])||point[0]<-180||point[0]>180||point[1]<-90||point[1]>90)return;
+   if(!marker)marker=new ml.Marker({color:"#23473e"}).setLngLat(point).addTo(map);else marker.setLngLat(point);
+   map.easeTo({center:point,zoom:map.getZoom(),duration:500});
+   searchArea=searchBoundary(point[0],point[1]);
+   const source=map.getSource("search-boundary");if(source)source.setData(searchArea);
+   boundaryLabel.hidden=false;
+ };
  button.addEventListener("click",()=>{
+  if(followWatchId!==null){navigator.geolocation.clearWatch(followWatchId);followWatchId=null;button.textContent="Mijn locatie";status.textContent="GPS-volgen gestopt. De kaart navigeert niet.";return}
   if(!navigator.geolocation){status.textContent="Locatiebepaling is niet beschikbaar in deze browser.";return}
   button.disabled=true;status.textContent="Locatietoestemming wordt gevraagd…";
   navigator.geolocation.getCurrentPosition(({coords})=>{
@@ -117,16 +132,21 @@ try{
    if(!Number.isFinite(point[0])||!Number.isFinite(point[1])||point[0]<-180||point[0]>180||point[1]<-90||point[1]>90){
     status.textContent="Je locatie kon niet worden bepaald. Controleer de locatievoorzieningen en probeer opnieuw.";button.disabled=false;return;
    }
-   if(!marker)marker=new ml.Marker({color:"#23473e"}).setLngLat(point).addTo(map);else marker.setLngLat(point);
+   updatePosition({coords});
    searchArea=searchBoundary(point[0],point[1]);
    const source=map.getSource("search-boundary");if(source)source.setData(searchArea);
    boundaryLabel.hidden=false;
    map.easeTo({center:point,zoom:7,duration:800});
-   button.disabled=false;
+   followWatchId=navigator.geolocation.watchPosition(updatePosition,error=>{
+    if(followWatchId!==null)navigator.geolocation.clearWatch(followWatchId);
+    followWatchId=null;button.textContent="Mijn locatie";button.disabled=false;
+    status.textContent=error.code===1?"Toegang tot GPS-volgen geweigerd. De kaart blijft bruikbaar.":"GPS-volgen is tijdelijk niet beschikbaar. De kaart blijft bruikbaar.";
+   },{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+   button.textContent="Stop volgen";button.disabled=false;status.textContent="GPS-volgen gestart. Tik nogmaals om te stoppen. Er is geen navigatie gestart.";
   },error=>{
    status.textContent=({1:"Geen toegang tot je locatie. De kaart blijft bruikbaar.",2:"Je locatie kon niet worden bepaald. Controleer de locatievoorzieningen en probeer opnieuw.",3:"Locatie bepalen duurde te lang. Probeer opnieuw."})[error.code]||"Locatiebepaling is niet gelukt. De kaart blijft bruikbaar.";
    button.disabled=false;
-  },{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+ },{enableHighAccuracy:true,timeout:20000,maximumAge:0});
  });
  searchButton.addEventListener("click",()=>{
   if(!navigator.geolocation){status.textContent="Locatiebepaling is niet beschikbaar. Zoeken vereist je actuele GPS-locatie; er is geen zoekactie uitgevoerd.";return}
@@ -151,3 +171,4 @@ try{
 </script>
 </body>
 </html>
+
