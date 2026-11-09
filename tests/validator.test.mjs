@@ -86,15 +86,18 @@ test('nested null values are a hard error', () => {
   assert.ok(validateDataset(data).errors.some(item => item.code === 'value.empty'));
 });
 
-test('phone field observations produce valid water and sanitary objects with supported OSM relations', () => {
+test('phone field observations produce valid objects for all four categories with supported OSM relations', () => {
   const data = emptyPilotDataset();
   let nextId = 0;
   const createId = () => `TEST-${++nextId}`;
   addFieldObservation(data, { category: 'water', osmType: 'node', osmId: 101, name: 'TEST: water point', coordinates: [2.9, 42.7], observationLocation: [2.9001, 42.7001], accuracyMeters: 12, distanceMeters: 14, observedAt: 'TEST: 2026-11-06T10:00:00Z', createId });
-  addFieldObservation(data, { category: 'sanitary', osmType: 'way', osmId: 202, name: 'TEST: toilets', coordinates: [2.91, 42.71], observationLocation: [2.9101, 42.7101], accuracyMeters: 15, distanceMeters: 14, observedAt: 'TEST: 2026-11-06T10:05:00Z', createId });
+  addFieldObservation(data, { category: 'toilet', osmType: 'way', osmId: 202, name: 'TEST: toilets', coordinates: [2.91, 42.71], observationLocation: [2.9101, 42.7101], accuracyMeters: 15, distanceMeters: 14, observedAt: 'TEST: 2026-11-06T10:05:00Z', createId });
+  addFieldObservation(data, { category: 'shower', osmType: 'node', osmId: 303, name: 'TEST: shower', coordinates: [2.92, 42.72], observedAt: 'TEST: 2026-11-06T10:10:00Z', createId });
+  addFieldObservation(data, { category: 'swimming', osmType: 'way', osmId: 404, name: 'TEST: swimming place', coordinates: [2.93, 42.73], observedAt: 'TEST: 2026-11-06T10:15:00Z', createId });
   const result = validateDataset(data);
   assert.equal(result.errors.length, 0);
-  assert.equal(data.knowledge_objects.length, 2);
-  assert.deepEqual(data.relations.map(relation => relation.predicate), ['represents', 'represents']);
-  assert.ok(data.claims.every(claim => claim.support.includes('Phone GPS:')));
+  assert.equal(data.knowledge_objects.length, 4);
+  assert.deepEqual(data.knowledge_objects.map(object => object.id), ['VASKOR-OSM-node-101', 'VASKOR-OSM-way-202', 'VASKOR-OSM-node-303', 'VASKOR-OSM-way-404']);
+  assert.deepEqual(data.relations.map(relation => relation.predicate), ['represents', 'represents', 'represents', 'represents']);
+  assert.ok(data.claims.slice(0, 2).every(claim => claim.support.includes('Phone GPS:')));
 });
