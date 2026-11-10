@@ -170,7 +170,7 @@ try{
   },error=>{
    status.textContent=({1:"Geen toegang tot je actuele locatie. Er is niet gezocht.",2:"Je actuele locatie kon niet worden bepaald. Er is niet gezocht; controleer je locatievoorzieningen.",3:"Actuele locatie bepalen duurde te lang. Er is niet gezocht; probeer opnieuw."})[error.code]||"Locatiebepaling is niet gelukt. Er is niet gezocht.";
    searchButton.disabled=false;
-  },{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+  },{enableHighAccuracy:true,timeout:60000,maximumAge:0});
  });
 }catch{
  status.textContent="De kaartmodule kon niet worden geladen. Controleer je verbinding; je locatie is niet opgevraagd.";
