@@ -18,7 +18,7 @@
 <div id="map" role="region" aria-label="Interactieve kaart" aria-describedby="status"></div>
 <header class="bar"><h1 class="brand">VASKOR</h1><div style="display:flex;gap:.5rem;pointer-events:auto"><label class="radius-control" for="search-radius">Straal <select id="search-radius" aria-label="Zoekstraal"><option value="20" selected>20 km</option><option value="50">50 km</option></select></label><button class="search-osm" id="search-osm" type="button" aria-describedby="status">Zoek voorzieningen</button><button class="locate" id="locate" type="button" aria-describedby="status">Mijn locatie</button></div></header>
 <div class="status collapsible-panel" id="status-panel"><div class="panel-heading"><span class="panel-copy" id="status" role="status" aria-live="polite">Kaart laden… Gebruik ‘Mijn locatie’ om de kaart te centreren. Voorzieningen zoeken gebeurt alleen wanneer je dat kiest.</span><button class="panel-toggle" type="button" aria-label="Statuspaneel inklappen" aria-expanded="true">⌃</button></div></div>
-<div class="search-boundary collapsible-panel" id="search-boundary" hidden><div class="panel-heading"><span class="panel-copy" id="search-boundary-copy">Zoekcirkel · 20 km vanaf GPS · OSM-kandidaten niet geverifieerd</span><button class="panel-toggle" type="button" aria-label="Zoekgebiedlabel inklappen" aria-expanded="true">⌃</button></div></div>
+<div class="search-boundary collapsible-panel" id="search-boundary" hidden><div class="panel-heading"><span class="panel-copy" id="search-boundary-copy">Zoekcirkel · 20 km vanaf GPS · resultaten vereisen expliciete OSM-tags voor geen kosten</span><button class="panel-toggle" type="button" aria-label="Zoekgebiedlabel inklappen" aria-expanded="true">⌃</button></div></div>
 <button id="export-data" type="button" aria-describedby="status">Exporteer veldtest · 0</button>
 </main>
 <noscript><p>Schakel JavaScript in om de kaart te gebruiken.</p></noscript>
@@ -26,6 +26,7 @@
 import {emptyPilotDataset,saveFieldObservation} from "./knowledge/pilot.mjs";
 import {DEFAULT_RADIUS_KM,isInsideSearchArea,overpassSearchQuery,searchBoundary,distanceMeters} from "./knowledge/search-area.mjs";
 import {categoryLabel,relationsForFeature,toVaskorFeature} from "./knowledge/osm-discovery.mjs";
+import {filterGratisOsmElements,gratisRelationForOsmElement} from "./knowledge/gratis-filter.mjs";
 const status=document.getElementById("status"),button=document.getElementById("locate"),searchButton=document.getElementById("search-osm"),radiusSelect=document.getElementById("search-radius"),boundaryLabel=document.getElementById("search-boundary"),boundaryCopy=document.getElementById("search-boundary-copy"),exportButton=document.getElementById("export-data");
 document.querySelectorAll(".panel-toggle").forEach(toggle=>toggle.addEventListener("click",()=>{
  const panel=toggle.closest(".collapsible-panel"),collapsed=panel.classList.toggle("collapsed");
@@ -41,7 +42,7 @@ const pilotKey="vaskor-knowledge-pilot-v1";
 let pilotData;try{const stored=JSON.parse(localStorage.getItem(pilotKey));pilotData=stored?.model_version==="1.0"?stored:emptyPilotDataset()}catch{pilotData=emptyPilotDataset()}
 const updateExportLabel=()=>{exportButton.textContent=`Exporteer veldtest · ${pilotData.knowledge_objects.length}`};updateExportLabel();
 
-function updateBoundaryLabel(){boundaryCopy.textContent=`Zoekcirkel · ${searchRadiusKm} km vanaf GPS · water, toiletten, douches en openbare zwemplekken · OSM-kandidaten niet geverifieerd`}
+function updateBoundaryLabel(){boundaryCopy.textContent=`Zoekcirkel · ${searchRadiusKm} km vanaf GPS · water, toiletten, douches en openbare zwemplekken · expliciete OSM-tags voor geen kosten`}
 function updateBoundary(){if(!currentOrigin)return;const area=searchBoundary(currentOrigin[0],currentOrigin[1],searchRadiusKm),source=map?.getSource("search-boundary");if(source)source.setData(area);boundaryLabel.hidden=false;updateBoundaryLabel()}
 radiusSelect.addEventListener("change",()=>{searchRadiusKm=Number(radiusSelect.value);if(waterRequest?.controller)waterRequest.controller.abort();waterRequest=null;waterPoints=emptyGeoJson;map?.getSource("osm-water")?.setData(waterPoints);updateBoundary();if(currentOrigin)status.textContent=`Zoekstraal ingesteld op ${searchRadiusKm} km. Tik op ‘Zoek voorzieningen’ om opnieuw te zoeken.`});
 async function findWaterPoints(longitude,latitude){
@@ -67,14 +68,14 @@ async function findWaterPoints(longitude,latitude){
  }
  try{
   if(lastError||!data)throw lastError||new Error("overpass-empty-response");
-  const features=(data.elements||[]).flatMap(element=>{
+  const features=filterGratisOsmElements(data.elements||[]).flatMap(element=>{
    const lon=element.lon??element.center?.lon,lat=element.lat??element.center?.lat;
    if(!Number.isFinite(lon)||!Number.isFinite(lat)||!isInsideSearchArea(longitude,latitude,lon,lat,requestedRadiusKm))return [];
-   const feature=toVaskorFeature(element);return feature?[feature]:[];
+   const feature=toVaskorFeature(element);if(feature)feature.properties.gratisRelation=gratisRelationForOsmElement(element);return feature?[feature]:[];
   });
   waterPoints={type:"FeatureCollection",features};
   const pointSource=map.getSource("osm-water");if(pointSource)pointSource.setData(waterPoints);
-  currentOrigin=[longitude,latitude];status.textContent=`${features.length} ongeverifieerde OSM-kandidaten gevonden binnen ${requestedRadiusKm} km. VASKOR toont mogelijke nabijheidsrelaties apart van vastgelegde relaties.`;
+  currentOrigin=[longitude,latitude];status.textContent=`${features.length} OSM-objecten met een uit expliciete OSM-tags afgeleide GRATIS-relatie gevonden binnen ${requestedRadiusKm} km.`;
  }catch(error){
   if(request!==waterRequest)return;
   status.textContent=error.name==="AbortError"?"De OpenStreetMap-zoekopdracht duurde te lang op beide servers. Probeer het later opnieuw.":error.message?.startsWith("overpass-")?`OpenStreetMap is tijdelijk niet beschikbaar (HTTP ${error.message.slice(9)}). Probeer het later opnieuw.`:"De OpenStreetMap-gegevens konden niet worden opgehaald. Controleer je verbinding en probeer het opnieuw.";
@@ -84,7 +85,7 @@ function showOsmPopup(feature,ml){
  const props=feature.properties,tags=props.tags||{},content=document.createElement("div");content.className="osm-popup";
  const category=props.category||"water",label=categoryLabel(category);
  const title=document.createElement("h2");title.textContent=tags.name||tags["name:en"]||`${label} (OSM)`;content.append(title);
- const note=document.createElement("p");note.textContent=`OpenStreetMap · ${props.osmType} ${props.osmId} · versie ${props.version??"onbekend"}${props.timestamp?` · OSM-bewerking ${props.timestamp}`:""} · ongetoetste brondata`;content.append(note);
+ const note=document.createElement("p");note.textContent=`OpenStreetMap · ${props.osmType} ${props.osmId} · versie ${props.version??"onbekend"}${props.timestamp?` · OSM-bewerking ${props.timestamp}`:""} · GRATIS-relatie afgeleid uit OSM-tags ${Object.entries(props.gratisRelation?.evidence?.tags||{}).map(([key,value])=>`${key}=${value}`).join(", ")}`;content.append(note);
  const identity=document.createElement("p");identity.textContent=`VASKOR-identiteit: ${props.vaskorId} · bronidentiteit: ${props.osmSourceId}`;content.append(identity);
  const relations=relationsForFeature(feature,waterPoints.features,pilotData);
  const relationPanel=document.createElement("section");relationPanel.className="relation-panel";
