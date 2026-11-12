@@ -5,6 +5,46 @@ const isTrail = tags => tags.highway && /^(path|footway|track|bridleway|steps)$/
 const isRoute = tags => tags.type === 'route' && /^(hiking|foot)$/.test(tags.route);
 const isNature = tags => tags.natural || tags.landuse || tags.waterway || tags.leisure === 'nature_reserve' || tags.leisure === 'park';
 const hasCoordinates = point => Number.isFinite(point?.[0]) && Number.isFinite(point?.[1]);
+const samePoint = (a, b) => a[0] === b[0] && a[1] === b[1];
+
+function memberRings(members) {
+  const segments = members.flatMap(member => {
+    if (member.type !== 'way' || !['outer', 'inner'].includes(member.role) || !Array.isArray(member.geometry)) return [];
+    const coordinates = member.geometry.map(point => [point.lon, point.lat]).filter(hasCoordinates);
+    return coordinates.length > 1 ? [{ role: member.role, coordinates }] : [];
+  });
+  const rings = [];
+  while (segments.length) {
+    const segment = segments.shift();
+    const ring = [...segment.coordinates];
+    let closed = samePoint(ring[0], ring.at(-1));
+    while (!closed) {
+      const matchIndex = segments.findIndex(candidate => candidate.role === segment.role &&
+        (samePoint(ring.at(-1), candidate.coordinates[0]) || samePoint(ring.at(-1), candidate.coordinates.at(-1))));
+      if (matchIndex < 0) break;
+      const [next] = segments.splice(matchIndex, 1);
+      const continuation = samePoint(ring.at(-1), next.coordinates[0]) ? next.coordinates : [...next.coordinates].reverse();
+      ring.push(...continuation.slice(1));
+      closed = samePoint(ring[0], ring.at(-1));
+    }
+    if (closed && ring.length >= 4) rings.push({ role: segment.role, coordinates: ring });
+  }
+  return rings;
+}
+
+function multipolygonGeometry(members) {
+  const rings = memberRings(members);
+  const polygons = rings.filter(ring => ring.role === 'outer').map(outer => ({ ring: outer.coordinates, holes: [] }));
+  for (const inner of rings.filter(ring => ring.role === 'inner')) {
+    const polygon = polygons.find(candidate => pointInRing(inner.coordinates[0], candidate.ring));
+    if (polygon) polygon.holes.push(inner.coordinates);
+  }
+  if (!polygons.length) return null;
+  const coordinates = polygons.map(polygon => [polygon.ring, ...polygon.holes]);
+  return coordinates.length === 1
+    ? { type: 'Polygon', coordinates: coordinates[0] }
+    : { type: 'MultiPolygon', coordinates };
+}
 
 function geometryOf(element, tags) {
   const points = (element.geometry || []).map(point => [point.lon, point.lat]).filter(hasCoordinates);
@@ -12,6 +52,22 @@ function geometryOf(element, tags) {
     const area = (tags.area === 'yes' || tags.natural || tags.landuse || tags.leisure === 'nature_reserve' || tags.leisure === 'park') &&
       points.length >= 4 && points[0][0] === points.at(-1)[0] && points[0][1] === points.at(-1)[1];
     return { type: area ? 'Polygon' : 'LineString', coordinates: area ? [points] : points };
+  }
+  // Overpass returns route relation geometry on member ways, not as a single
+  // top-level geometry array. Keep the members separate to avoid inventing
+  // straight lines between disconnected route segments.
+  if (element.type === 'relation' && element.members?.length) {
+    if (isNature(tags)) {
+      const area = multipolygonGeometry(element.members);
+      if (area) return area;
+    }
+    const lines = element.members
+      .filter(member => member.type === 'way' && Array.isArray(member.geometry))
+      .map(member => member.geometry.map(point => [point.lon, point.lat]).filter(hasCoordinates))
+      .filter(line => line.length > 1);
+    if (lines.length) return lines.length === 1
+      ? { type: 'LineString', coordinates: lines[0] }
+      : { type: 'MultiLineString', coordinates: lines };
   }
   const center = element.center || (Number.isFinite(element.lon) ? element : null);
   return center ? { type: 'Point', coordinates: [center.lon, center.lat] } : null;
@@ -42,14 +98,60 @@ export function toTrailFeatures(elements = []) {
 function anchor(feature) {
   const geometry = feature.geometry;
   if (geometry.type === 'Point') return geometry.coordinates;
-  const points = geometry.type === 'Polygon' ? geometry.coordinates[0] : geometry.coordinates;
+  const points = geometry.type === 'Polygon' ? geometry.coordinates[0]
+    : geometry.type === 'MultiLineString' ? geometry.coordinates[0] : geometry.coordinates;
   return points[Math.floor(points.length / 2)] || null;
 }
 
 function vertices(feature) {
   const geometry = feature.geometry;
   return geometry.type === 'Point' ? [geometry.coordinates]
-    : geometry.type === 'Polygon' ? geometry.coordinates.flat() : geometry.coordinates;
+    : geometry.type === 'Polygon' ? geometry.coordinates.flat()
+      : geometry.type === 'MultiPolygon' ? geometry.coordinates.flat(2)
+      : geometry.type === 'MultiLineString' ? geometry.coordinates.flat() : geometry.coordinates;
+}
+
+function pointInRing(point, ring) {
+  const [x, y] = point;
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i], [xj, yj] = ring[j];
+    const crosses = (yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
+    if (crosses) inside = !inside;
+  }
+  return inside;
+}
+
+function containsSearchPoint(feature, longitude, latitude) {
+  const { type, coordinates } = feature.geometry;
+  if (type === 'Polygon') return pointInRing([longitude, latitude], coordinates[0]) && !coordinates.slice(1).some(ring => pointInRing([longitude, latitude], ring));
+  if (type === 'MultiPolygon') return coordinates.some(polygon => pointInRing([longitude, latitude], polygon[0]) && !polygon.slice(1).some(ring => pointInRing([longitude, latitude], ring)));
+  return false;
+}
+
+export const trailLayerDefinitions = [
+  { id: 'osm-nature-fill', type: 'fill', source: 'osm-trails', filter: ['all', ['==', ['geometry-type'], 'Polygon'], ['in', ['get', 'category'], ['literal', ['nature_area', 'beach']]]], paint: { 'fill-color': ['case', ['any', ['==', ['get', 'natural'], 'water'], ['has', 'waterway']], '#75C9D4', ['==', ['get', 'category'], 'beach'], '#E7D79A', '#9BD18B'], 'fill-opacity': 0.32, 'fill-outline-color': '#2F7D4A' } },
+  { id: 'osm-nature-lines', type: 'line', source: 'osm-trails', filter: ['all', ['==', ['geometry-type'], 'LineString'], ['==', ['get', 'category'], 'nature_area']], paint: { 'line-color': ['case', ['any', ['==', ['get', 'natural'], 'water'], ['has', 'waterway']], '#168B9A', '#5F934F'], 'line-width': ['interpolate', ['linear'], ['zoom'], 5, 1.8, 12, 3] } },
+  { id: 'osm-trail-casing', type: 'line', source: 'osm-trails', filter: ['in', ['get', 'category'], ['literal', ['trail', 'hiking_route']]], paint: { 'line-color': '#FFFFFF', 'line-width': ['interpolate', ['linear'], ['zoom'], 5, 4, 12, 7], 'line-opacity': 0.92 } },
+  { id: 'osm-trail-lines', type: 'line', source: 'osm-trails', filter: ['==', ['get', 'category'], 'trail'], paint: { 'line-color': '#176B45', 'line-width': ['interpolate', ['linear'], ['zoom'], 5, 2.5, 12, 4.5] } },
+  { id: 'osm-route-lines', type: 'line', source: 'osm-trails', filter: ['==', ['get', 'category'], 'hiking_route'], paint: { 'line-color': '#0B5033', 'line-width': ['interpolate', ['linear'], ['zoom'], 5, 3, 12, 5], 'line-dasharray': [2, 1.2] } },
+  { id: 'osm-trail-points', type: 'circle', source: 'osm-trails', filter: ['==', ['geometry-type'], 'Point'], paint: { 'circle-radius': 6, 'circle-color': '#176B45', 'circle-stroke-color': '#FFFFFF', 'circle-stroke-width': 2 } }
+];
+
+export function setTrailSourceData(map, features) {
+  map.getSource('osm-trails')?.setData({ type: 'FeatureCollection', features });
+}
+
+export function addTrailLayers(map, onFeatureClick = () => {}) {
+  for (const layer of trailLayerDefinitions) map.addLayer(layer);
+  for (const layer of trailLayerDefinitions) {
+    map.on('click', layer.id, event => {
+      const feature = event.features?.[0];
+      if (feature) onFeatureClick(feature);
+    });
+    map.on('mouseenter', layer.id, () => { map.getCanvas().style.cursor = 'pointer'; });
+    map.on('mouseleave', layer.id, () => { map.getCanvas().style.cursor = ''; });
+  }
 }
 
 function nearestVertexDistance(a, b) {
@@ -127,9 +229,15 @@ export function filterTrailFeatures(features, longitude, latitude, radiusKm) {
   return features.filter(feature => {
     const points = vertices(feature);
     if (points.some(point => isInsideSearchArea(longitude, latitude, point[0], point[1], radiusKm))) return true;
+    if (containsSearchPoint(feature, longitude, latitude)) return true;
     const segments = feature.geometry.type === 'Polygon'
       ? feature.geometry.coordinates.flatMap(ring => ring.slice(1).map((point, index) => [ring[index], point]))
-      : points.slice(1).map((point, index) => [points[index], point]);
+      : feature.geometry.type === 'MultiPolygon'
+        ? feature.geometry.coordinates.flatMap(polygon => polygon.flatMap(ring => ring.slice(1).map((point, index) => [ring[index], point])))
+      : feature.geometry.type === 'MultiLineString'
+        ? feature.geometry.coordinates.flatMap(line => line.slice(1).map((point, index) => [line[index], point]))
+        : points.slice(1).map((point, index) => [points[index], point]);
     return segments.some(([start, end]) => segmentDistance([longitude, latitude], start, end) <= radiusMeters);
   });
 }
+

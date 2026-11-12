@@ -1,13 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { overpassTrailQuery } from '../knowledge/search-area.mjs';
-import { deriveTrailRelations, filterTrailFeatures, toTrailFeatures } from '../knowledge/osm-trails.mjs';
+import { addTrailLayers, deriveTrailRelations, filterTrailFeatures, setTrailSourceData, toTrailFeatures, trailLayerDefinitions } from '../knowledge/osm-trails.mjs';
 
 test('trail query covers paths, hiking route relations and nature', () => {
   const query = overpassTrailQuery(5, 52, 20);
   assert.match(query, /highway.*path/);
   assert.match(query, /relation\["route"~"\^\(hiking\|foot\)\$"\]/);
   assert.match(query, /natural/);
+  assert.match(query, /relation\["landuse"/);
   assert.match(query, /out body geom/);
 });
 
@@ -42,3 +43,72 @@ test('center-only ways become point candidates and crossing ways survive radius 
   assert.equal(features[0].geometry.type, 'Point');
   assert.equal(filterTrailFeatures(features, 5, 52, 1).length, 2);
 });
+
+test('route relations without top-level geometry retain member lines without joining gaps', () => {
+  const features = toTrailFeatures([{
+    type: 'relation', id: 71, tags: { type: 'route', route: 'hiking', name: 'Gesegmenteerde route' },
+    members: [
+      { type: 'way', ref: 1, role: '', geometry: [{ lon: 5, lat: 52 }, { lon: 5.001, lat: 52 }] },
+      { type: 'way', ref: 2, role: '', geometry: [{ lon: 5.01, lat: 52 }, { lon: 5.011, lat: 52 }] }
+    ]
+  }]);
+  assert.equal(features.length, 1);
+  assert.equal(features[0].geometry.type, 'MultiLineString');
+  assert.equal(features[0].geometry.coordinates.length, 2);
+  assert.equal(filterTrailFeatures(features, 5, 52, 1).length, 1);
+});
+
+test('line and polygon fixtures reach the MapLibre GeoJSON source and visible layers', () => {
+  const features = toTrailFeatures([
+    { type: 'way', id: 81, tags: { highway: 'path', name: 'Bospaadje' }, geometry: [{ lon: 5, lat: 52 }, { lon: 5.001, lat: 52 }] },
+    { type: 'way', id: 82, tags: { landuse: 'forest', name: 'Bos' }, geometry: [{ lon: 5, lat: 52 }, { lon: 5.002, lat: 52 }, { lon: 5.002, lat: 52.002 }, { lon: 5, lat: 52.002 }, { lon: 5, lat: 52 }] }
+  ]);
+  let sourceData;
+  const addedLayers = [];
+  const map = {
+    getSource: id => id === 'osm-trails' ? { setData: data => { sourceData = data; } } : undefined,
+    addLayer: layer => addedLayers.push(layer),
+    on: () => {},
+    getCanvas: () => ({ style: {} })
+  };
+
+  setTrailSourceData(map, features);
+  addTrailLayers(map);
+
+  assert.equal(sourceData.type, 'FeatureCollection');
+  assert.ok(sourceData.features.some(feature => feature.geometry.type === 'LineString'));
+  assert.ok(sourceData.features.some(feature => feature.geometry.type === 'Polygon'));
+  assert.deepEqual(addedLayers, trailLayerDefinitions);
+  assert.ok(addedLayers.some(layer => layer.id === 'osm-trail-lines' && layer.source === 'osm-trails'));
+  assert.ok(addedLayers.some(layer => layer.id === 'osm-nature-fill' && layer.source === 'osm-trails'));
+  assert.ok(addedLayers.some(layer => layer.id === 'osm-nature-lines' && layer.source === 'osm-trails'));
+  assert.equal(addedLayers.find(layer => layer.id === 'osm-trail-lines').paint['line-color'], '#176B45');
+  assert.ok(addedLayers.every(layer => layer.layout?.visibility !== 'none'));
+});
+
+test('nature polygon containing the search center survives even when its boundary is outside the radius', () => {
+  const [forest] = toTrailFeatures([{
+    type: 'way', id: 91, tags: { landuse: 'forest', name: 'Groot bos' },
+    geometry: [
+      { lon: 4.98, lat: 51.98 }, { lon: 5.02, lat: 51.98 },
+      { lon: 5.02, lat: 52.02 }, { lon: 4.98, lat: 52.02 },
+      { lon: 4.98, lat: 51.98 }
+    ]
+  }]);
+  assert.equal(filterTrailFeatures([forest], 5, 52, 1).length, 1);
+});
+
+test('nature multipolygon relations assemble member rings and retain inner holes', () => {
+  const [forest] = toTrailFeatures([{
+    type: 'relation', id: 92, tags: { type: 'multipolygon', landuse: 'forest', name: 'Bos met open plek' },
+    members: [
+      { type: 'way', ref: 101, role: 'outer', geometry: [{ lon: 4.99, lat: 51.99 }, { lon: 5.01, lat: 51.99 }, { lon: 5.01, lat: 52.01 }, { lon: 4.99, lat: 52.01 }, { lon: 4.99, lat: 51.99 }] },
+      { type: 'way', ref: 102, role: 'inner', geometry: [{ lon: 4.999, lat: 51.999 }, { lon: 5.001, lat: 51.999 }, { lon: 5.001, lat: 52.001 }, { lon: 4.999, lat: 52.001 }, { lon: 4.999, lat: 51.999 }] }
+    ]
+  }]);
+  assert.equal(forest.geometry.type, 'Polygon');
+  assert.equal(forest.geometry.coordinates.length, 2);
+  assert.equal(filterTrailFeatures([forest], 5, 52, 0.05).length, 0);
+  assert.equal(filterTrailFeatures([forest], 5.005, 52, 0.05).length, 1);
+});
+
