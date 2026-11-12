@@ -18,6 +18,20 @@ test('reports JSON, network and timeout failures with endpoint details', async (
   await assert.rejects(fetchOverpass('q', { endpoints: ['slow'], timeoutMs: 5, fetchImpl: (_url, { signal }) => new Promise((_, reject) => signal.addEventListener('abort', () => reject(new Error('aborted')))) }), error => error.kind === 'timeout' && error.endpoint === 'slow');
 });
 
+test('timeout advances fallback when fetch or response body never settles', async () => {
+  const used = [];
+  await assert.rejects(fetchOverpass('q', {
+    endpoints: ['stalled-fetch', 'stalled-body'],
+    timeoutMs: 5,
+    fetchImpl: async endpoint => {
+      used.push(endpoint);
+      if (endpoint === 'stalled-fetch') return new Promise(() => {});
+      return { ok: true, json: () => new Promise(() => {}) };
+    }
+  }), error => error.kind === 'timeout' && error.endpoint === 'stalled-body');
+  assert.deepEqual(used, ['stalled-fetch', 'stalled-body']);
+});
+
 test('caller cancellation stops fallback and is distinguished from timeout', async () => {
   const controller = new AbortController();
   let calls = 0;
@@ -29,3 +43,17 @@ test('caller cancellation stops fallback and is distinguished from timeout', asy
   await assert.rejects(request, error => error.kind === 'cancelled');
   assert.equal(calls, 1);
 });
+
+test('caller cancellation settles even when the fetch implementation ignores abort', async () => {
+  const controller = new AbortController();
+  let calls = 0;
+  const request = fetchOverpass('q', {
+    endpoints: ['one', 'two'],
+    signal: controller.signal,
+    fetchImpl: () => { calls++; return new Promise(() => {}); }
+  });
+  controller.abort();
+  await assert.rejects(request, error => error.kind === 'cancelled');
+  assert.equal(calls, 1);
+});
+

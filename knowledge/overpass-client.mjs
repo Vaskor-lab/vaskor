@@ -13,11 +13,21 @@ export async function fetchOverpass(query, { endpoints, signal, timeoutMs = 7000
   for (const endpoint of endpoints) {
     if (signal?.aborted) throw new OverpassRequestError('cancelled', endpoint);
     const controller = new AbortController();
-    const abortFromCaller = () => controller.abort();
+    let timeout, rejectCancelled;
+    const abortFromCaller = () => {
+      controller.abort();
+      rejectCancelled(new OverpassRequestError('cancelled', endpoint));
+    };
+    const cancellation = new Promise((_, reject) => { rejectCancelled = reject; });
     signal?.addEventListener('abort', abortFromCaller, { once: true });
-    let timedOut = false;
-    const timeout = setTimeout(() => { timedOut = true; controller.abort(); }, timeoutMs);
-    try {
+    if (signal?.aborted) abortFromCaller();
+    const deadline = new Promise((_, reject) => {
+      timeout = setTimeout(() => {
+        controller.abort();
+        reject(new OverpassRequestError('timeout', endpoint, `${timeoutMs} ms`));
+      }, timeoutMs);
+    });
+    const request = (async () => {
       const response = await fetchImpl(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
@@ -26,16 +36,17 @@ export async function fetchOverpass(query, { endpoints, signal, timeoutMs = 7000
       });
       if (!response.ok) throw new OverpassRequestError('http', endpoint, String(response.status));
       try {
-        return { data: await response.json(), endpoint };
+        return await response.json();
       } catch {
-        if (signal?.aborted) throw new OverpassRequestError('cancelled', endpoint);
-        if (timedOut) throw new OverpassRequestError('timeout', endpoint, `${timeoutMs} ms`);
         throw new OverpassRequestError('json', endpoint);
       }
+    })();
+    try {
+      return { data: await Promise.race([request, deadline, cancellation]), endpoint };
     } catch (error) {
+      if (error instanceof OverpassRequestError && error.kind === 'cancelled') throw error;
       if (error instanceof OverpassRequestError) lastError = error;
       else if (signal?.aborted) throw new OverpassRequestError('cancelled', endpoint);
-      else if (timedOut) lastError = new OverpassRequestError('timeout', endpoint, `${timeoutMs} ms`);
       else lastError = new OverpassRequestError('network', endpoint);
     } finally {
       clearTimeout(timeout);
@@ -44,3 +55,4 @@ export async function fetchOverpass(query, { endpoints, signal, timeoutMs = 7000
   }
   throw lastError || new OverpassRequestError('network', 'no endpoint');
 }
+
