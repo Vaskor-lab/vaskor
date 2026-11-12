@@ -21,7 +21,7 @@ test('POI marker buttons have a readable category label', () => {
   });
   assert.equal(marker.type, 'button');
   assert.equal(marker.className, 'poi-marker');
-  assert.equal(attributes['aria-label'], 'Toilet op OpenStreetMap');
+  assert.equal(attributes['aria-label'], 'Toilet');
   assert.match(marker.innerHTML, /E37400/);
 });
 
