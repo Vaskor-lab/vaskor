@@ -26,7 +26,7 @@
 <noscript><p>Schakel JavaScript in om de kaart te gebruiken.</p></noscript>
 <script type="module">
 import {emptyPilotDataset,saveFieldObservation} from "./knowledge/pilot.mjs";
-import {DEFAULT_RADIUS_KM,isInsideSearchArea,overpassSearchQuery,overpassTrailQuery,searchBoundary,distanceMeters} from "./knowledge/search-area.mjs";
+import {DEFAULT_RADIUS_KM,isInsideSearchArea,overpassSearchQuery,overpassTrailQuery,overpassNatureQuery,searchBoundary,distanceMeters} from "./knowledge/search-area.mjs";
 import {categoryLabel,relationsForFeature,toVaskorFeature} from "./knowledge/osm-discovery.mjs";
 import {filterGratisOsmElements,gratisRelationForOsmElement} from "./knowledge/gratis-filter.mjs";
 import {addTrailLayers,countRouteMemberLinks,deriveTrailRelations,filterTrailFeatures,setTrailSourceData,toTrailFeatures} from "./knowledge/osm-trails.mjs";
@@ -54,7 +54,7 @@ async function findWaterPoints(longitude,latitude){
  waterRequest?.controller.abort();
  waterPoints=emptyGeoJson;trailFeatures=emptyGeoJson;const source=map.getSource("osm-water");if(source)source.setData(waterPoints);setTrailSourceData(map,[]);
  const request={controller:new AbortController()};waterRequest=request;
-  let waterOutcome="voorzieningen zoeken…",trailOutcome="wandelpaden en natuur zoeken (maximaal circa 70 seconden)…";
+  let waterOutcome="voorzieningen zoeken…",trailOutcome="wandelpaden/routes en natuur/water zoeken (maximaal circa 50 seconden)…";
  const renderStatus=()=>{if(request===waterRequest)status.textContent=`${waterOutcome} ${trailOutcome}`};renderStatus();
  const describeError=error=>error.kind==="http"?`HTTP ${error.detail} bij ${error.endpoint}`:error.kind==="timeout"?`timeout bij ${error.endpoint}`:error.kind==="json"?`ongeldige JSON van ${error.endpoint}`:error.kind==="cancelled"?"geannuleerd":`netwerk/CORS-fout bij ${error.endpoint}`;
  const waterTask=(async()=>{
@@ -72,15 +72,20 @@ async function findWaterPoints(longitude,latitude){
   renderStatus();
  })();
  const trailTask=(async()=>{
-  try{
-   const {data}=await fetchOverpass(overpassTrailQuery(longitude,latitude,requestedRadiusKm),{endpoints:overpassEndpoints,signal:request.controller.signal,timeoutMs:35000});
-   if(request!==waterRequest)return;
-   const features=filterTrailFeatures(toTrailFeatures(data.elements||[]),longitude,latitude,requestedRadiusKm);
-   trailFeatures={type:"FeatureCollection",features};setTrailSourceData(map,features);
-   const routeLinkCount=countRouteMemberLinks(features);
-   trailOutcome=`${features.length} wandel-/natuurkandidaten gevonden; ${routeLinkCount} OSM-routekoppelingen zijn onbevestigd.`;
-  }catch(error){if(request!==waterRequest||error.kind==="cancelled")return;trailOutcome=`Wandelpaden/natuur mislukt: ${describeError(error)}.`}
-  renderStatus();
+  const outcomes=[];
+  const searches=[["Wandelpaden/routes",overpassTrailQuery],["Natuur/water",overpassNatureQuery]];
+  await Promise.all(searches.map(async([label,queryBuilder])=>{
+   try{
+    const {data}=await fetchOverpass(queryBuilder(longitude,latitude,requestedRadiusKm),{endpoints:overpassEndpoints,signal:request.controller.signal,timeoutMs:25000});
+    if(request!==waterRequest)return;
+    const features=filterTrailFeatures(toTrailFeatures(data.elements||[]),longitude,latitude,requestedRadiusKm);
+    const merged=new Map([...trailFeatures.features,...features].map(feature=>[feature.properties.osmSourceId,feature]));
+    trailFeatures={type:"FeatureCollection",features:[...merged.values()]};setTrailSourceData(map,trailFeatures.features);
+    outcomes.push(`${label}: ${features.length} kandidaten`);
+   }catch(error){if(request!==waterRequest||error.kind==="cancelled")return;outcomes.push(`${label} mislukt (${describeError(error)})`)}
+   trailOutcome=outcomes.join(" · ");renderStatus();
+  }));
+  if(request===waterRequest){const routeLinkCount=countRouteMemberLinks(trailFeatures.features);trailOutcome+=`; totaal ${trailFeatures.features.length} kandidaten, ${routeLinkCount} onbevestigde OSM-routekoppelingen.`;renderStatus()}
  })();
  currentOrigin=[longitude,latitude];updateBoundary();
  await Promise.all([waterTask,trailTask]);
