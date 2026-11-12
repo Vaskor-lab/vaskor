@@ -1,17 +1,20 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { overpassTrailQuery } from '../knowledge/search-area.mjs';
+import { overpassNatureQuery, overpassTrailQuery } from '../knowledge/search-area.mjs';
 import { addTrailLayers, countRouteMemberLinks, deriveTrailRelations, filterTrailFeatures, setTrailSourceData, toTrailFeatures, trailLayerDefinitions } from '../knowledge/osm-trails.mjs';
 
-test('trail query covers paths, hiking route relations and nature', () => {
+test('trail and nature queries are scoped independently', () => {
   const query = overpassTrailQuery(5, 52, 20);
   assert.match(query, /highway.*path/);
   assert.match(query, /relation\["route"~"\^\(hiking\|foot\)\$"\]/);
-  assert.match(query, /natural/);
-  assert.match(query, /relation\["landuse"/);
-  assert.match(query, /landuse"="forest/);
-  assert.doesNotMatch(query, /\["place"|picnic_site|viewpoint|meadow|grass|"park"/);
+  assert.doesNotMatch(query, /landuse|natural|waterway|picnic_site|viewpoint/);
+  const nature = overpassNatureQuery(5, 52, 20);
+  assert.match(nature, /natural/);
+  assert.match(nature, /landuse"="forest/);
+  assert.match(nature, /waterway/);
+  assert.doesNotMatch(nature, /highway|\["place"|picnic_site|viewpoint|meadow|grass|"park"/);
   assert.match(query, /out body geom/);
+  assert.match(nature, /out body geom/);
 });
 
 test('features retain OSM identity and tags and remove duplicate source objects', () => {
