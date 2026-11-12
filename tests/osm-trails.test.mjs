@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { overpassTrailQuery } from '../knowledge/search-area.mjs';
-import { addTrailLayers, deriveTrailRelations, filterTrailFeatures, setTrailSourceData, toTrailFeatures, trailLayerDefinitions } from '../knowledge/osm-trails.mjs';
+import { addTrailLayers, countRouteMemberLinks, deriveTrailRelations, filterTrailFeatures, setTrailSourceData, toTrailFeatures, trailLayerDefinitions } from '../knowledge/osm-trails.mjs';
 
 test('trail query covers paths, hiking route relations and nature', () => {
   const query = overpassTrailQuery(5, 52, 20);
@@ -29,10 +29,21 @@ test('route member links are retained and inferred surroundings are marked as ca
     { type: 'way', id: 40, tags: { amenity: 'picnic_site' }, center: { lon: 5.001, lat: 52 } }
   ]);
   const relations = deriveTrailRelations(features);
+  assert.equal(countRouteMemberLinks(features), 1);
   assert.ok(relations.some(relation => relation.predicate.includes('bestaat uit wandelpad') && relation.kind === 'osm_member' && relation.confidence.includes('niet ter plaatse geverifieerd')));
   assert.ok(relations.some(relation => relation.predicate.includes('loopt doorheen') && relation.confidence.includes('onbevestigd')));
   assert.ok(relations.some(relation => relation.predicate.includes('picknickplek ligt in bos')));
   assert.ok(filterTrailFeatures(features, 5, 52, 1).length > 0);
+});
+
+test('fast route-link count ignores inferred pairwise proximity work', () => {
+  const features = toTrailFeatures([
+    { type: 'way', id: 201, tags: { highway: 'path' }, geometry: [{ lon: 5, lat: 52 }, { lon: 5.001, lat: 52 }] },
+    { type: 'relation', id: 202, tags: { type: 'route', route: 'hiking' }, members: [{ type: 'way', ref: 201, role: '' }], geometry: [{ lon: 5, lat: 52 }, { lon: 5.001, lat: 52 }] },
+    { type: 'way', id: 203, tags: { landuse: 'forest' }, geometry: [{ lon: 5, lat: 52 }, { lon: 5.002, lat: 52 }, { lon: 5.002, lat: 52.002 }, { lon: 5, lat: 52.002 }, { lon: 5, lat: 52 }] }
+  ]);
+  assert.equal(countRouteMemberLinks(features), 1);
+  assert.equal(countRouteMemberLinks(features.filter(feature => feature.properties.category === 'nature_area')), 0);
 });
 
 test('center-only ways become point candidates and crossing ways survive radius filtering', () => {

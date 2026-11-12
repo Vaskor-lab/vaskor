@@ -154,6 +154,16 @@ export function addTrailLayers(map, onFeatureClick = () => {}) {
   }
 }
 
+export function countRouteMemberLinks(features) {
+  const trailIds = new Set(features
+    .filter(feature => feature.properties.category === 'trail')
+    .map(feature => feature.properties.osmSourceId));
+  return features
+    .filter(feature => feature.properties.category === 'hiking_route')
+    .reduce((count, route) => count + route.properties.members.reduce((matches, member) =>
+      matches + (trailIds.has(`OSM-way-${member.ref}`) ? 1 : 0), 0), 0);
+}
+
 function nearestVertexDistance(a, b) {
   let nearest = Infinity;
   for (const pointA of vertices(a)) for (const pointB of vertices(b)) {
