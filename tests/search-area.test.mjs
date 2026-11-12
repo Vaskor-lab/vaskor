@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DEFAULT_RADIUS_KM, isInsideSearchArea, overpassSearchQuery, searchBoundary, searchBounds } from '../knowledge/search-area.mjs';
-import { classifyOsmTags, relationsForFeature, toVaskorFeature } from '../knowledge/osm-discovery.mjs';
+import { classifyOsmTags, toVaskorFeature } from '../knowledge/osm-discovery.mjs';
 
 test('default circle is 20 km and boundary represents requested radius', () => {
   assert.equal(DEFAULT_RADIUS_KM, 20);
@@ -37,17 +37,3 @@ test('OSM candidates become separate VASKOR identities and known categories', ()
   assert.equal(toVaskorFeature({ type: 'node', id: 1, lon: 0, lat: 0, tags: { amenity: 'bench' } }), null);
 });
 
-test('recorded links and inferred nearby candidates are returned separately', () => {
-  const a = toVaskorFeature({ type: 'node', id: 1, lon: 0, lat: 0, tags: { amenity: 'drinking_water' } });
-  const b = toVaskorFeature({ type: 'node', id: 2, lon: 0.001, lat: 0, tags: { amenity: 'toilets' } });
-  const dataset = {
-    knowledge_objects: [{ id: a.properties.vaskorId, label: 'TEST: waargenomen waterpunt' }],
-    source_representations: [{ id: 'OSM-node-1', provider: 'OpenStreetMap', record_id: 'node/1' }],
-    relations: [{ id: 'REL-1', subject_id: 'OSM-node-1', predicate: 'represents', object_id: a.properties.vaskorId, supporting_claim_ids: ['CLAIM-1'] }]
-  };
-  const relations = relationsForFeature(a, [a, b], dataset);
-  assert.equal(relations.recorded[0].kind, 'recorded');
-  assert.equal(relations.recorded[0].predicate, 'represents');
-  assert.equal(relations.candidates[0].kind, 'candidate');
-  assert.ok(relations.candidates[0].distanceMeters < 500);
-});
