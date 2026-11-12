@@ -23,6 +23,10 @@ test('location switch starts tracking only on activation and stops cleanly when 
   assert.match(page, /navigator\.geolocation\.clearWatch/);
   assert.match(page, /setLocationSwitch\(false\)/);
   assert.match(page, /min-height:56px/);
+  const searchHandler = page.match(/searchButton\.addEventListener\("click",\(\)=>\{([\s\S]*?)\n \}\);/)?.[1];
+  assert.ok(searchHandler);
+  assert.ok(searchHandler.includes('aria-checked') && searchHandler.includes('Schakel Locatie in om voorzieningen te zoeken.'));
+  assert.ok(searchHandler.indexOf('aria-checked') < searchHandler.indexOf('navigator.geolocation.getCurrentPosition'));
 });
 
 test('map supports single-finger pan and pinch while marker remains geographically anchored', () => {
