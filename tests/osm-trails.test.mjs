@@ -9,6 +9,8 @@ test('trail query covers paths, hiking route relations and nature', () => {
   assert.match(query, /relation\["route"~"\^\(hiking\|foot\)\$"\]/);
   assert.match(query, /natural/);
   assert.match(query, /relation\["landuse"/);
+  assert.match(query, /landuse"="forest/);
+  assert.doesNotMatch(query, /\["place"|picnic_site|viewpoint|meadow|grass|"park"/);
   assert.match(query, /out body geom/);
 });
 

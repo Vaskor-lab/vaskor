@@ -11,7 +11,8 @@ function validateRadius(radiusKm) {
 export function overpassTrailQuery(longitude, latitude, radiusKm = DEFAULT_RADIUS_KM) {
   const { south, west, north, east } = searchBounds(longitude, latitude, radiusKm);
   const box = `(${south},${west},${north},${east})`;
-  return `[out:json][timeout:30];(way["highway"~"^(path|footway|track|bridleway|steps)$"]${box};relation["route"~"^(hiking|foot)$"]${box};way["natural"~"^(wood|scrub|heath|water|wetland|beach)$"]${box};relation["natural"~"^(wood|scrub|heath|water|wetland|beach)$"]${box};way["waterway"]${box};way["landuse"~"^(forest|meadow|grass)$"]${box};relation["landuse"~"^(forest|meadow|grass)$"]${box};way["leisure"~"^(nature_reserve|park)$"]${box};relation["leisure"~"^(nature_reserve|park)$"]${box};nwr["amenity"="picnic_site"]${box};nwr["tourism"="viewpoint"]${box};nwr["place"~"^(city|town|village|hamlet|suburb|neighbourhood)$"]${box};);out body geom;`;
+  // Keep this query focused on features with dedicated map styling. Broad place, picnic and viewpoint searches add many unrelated objects and can make a 20–50 km geometry response too expensive for public Overpass.
+  return `[out:json][timeout:30];(way["highway"~"^(path|footway|track|bridleway|steps)$"]${box};relation["route"~"^(hiking|foot)$"]${box};way["natural"~"^(wood|scrub|heath|water|wetland|beach)$"]${box};relation["natural"~"^(wood|scrub|heath|water|wetland|beach)$"]${box};way["waterway"]${box};way["landuse"="forest"]${box};relation["landuse"="forest"]${box};way["leisure"="nature_reserve"]${box};relation["leisure"="nature_reserve"]${box};);out body geom;`;
 }
 
 export function searchBounds(longitude, latitude, radiusKm = DEFAULT_RADIUS_KM) {
