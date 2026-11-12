@@ -112,8 +112,24 @@ export function deriveTrailRelations(features, maxDistanceMeters = 500) {
 }
 
 export function filterTrailFeatures(features, longitude, latitude, radiusKm) {
+  const radiusMeters = radiusKm * 1000;
+  const toLocal = ([lon, lat]) => [
+    (lon - longitude) * Math.PI / 180 * 6371008.8 * Math.cos(latitude * Math.PI / 180),
+    (lat - latitude) * Math.PI / 180 * 6371008.8
+  ];
+  const segmentDistance = (point, start, end) => {
+    const p = toLocal(point), a = toLocal(start), b = toLocal(end);
+    const dx = b[0] - a[0], dy = b[1] - a[1];
+    const denominator = dx * dx + dy * dy;
+    const t = denominator ? Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / denominator)) : 0;
+    return Math.hypot(p[0] - (a[0] + t * dx), p[1] - (a[1] + t * dy));
+  };
   return features.filter(feature => {
     const points = vertices(feature);
-    return points.some(point => isInsideSearchArea(longitude, latitude, point[0], point[1], radiusKm));
+    if (points.some(point => isInsideSearchArea(longitude, latitude, point[0], point[1], radiusKm))) return true;
+    const segments = feature.geometry.type === 'Polygon'
+      ? feature.geometry.coordinates.flatMap(ring => ring.slice(1).map((point, index) => [ring[index], point]))
+      : points.slice(1).map((point, index) => [points[index], point]);
+    return segments.some(([start, end]) => segmentDistance([longitude, latitude], start, end) <= radiusMeters);
   });
 }

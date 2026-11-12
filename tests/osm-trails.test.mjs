@@ -33,3 +33,12 @@ test('route member links are retained and inferred surroundings are marked as ca
   assert.ok(relations.some(relation => relation.predicate.includes('picknickplek ligt in bos')));
   assert.ok(filterTrailFeatures(features, 5, 52, 1).length > 0);
 });
+
+test('center-only ways become point candidates and crossing ways survive radius filtering', () => {
+  const features = toTrailFeatures([
+    { type: 'way', id: 51, tags: { highway: 'path' }, center: { lon: 5, lat: 52 } },
+    { type: 'way', id: 52, tags: { highway: 'path' }, geometry: [{ lon: 4.99, lat: 52 }, { lon: 5.01, lat: 52 }] }
+  ]);
+  assert.equal(features[0].geometry.type, 'Point');
+  assert.equal(filterTrailFeatures(features, 5, 52, 1).length, 2);
+});
