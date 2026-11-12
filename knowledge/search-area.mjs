@@ -54,3 +54,9 @@ export function overpassSearchQuery(longitude, latitude, radiusKm = DEFAULT_RADI
   const { south, west, north, east } = searchBounds(longitude, latitude, radiusKm);
   return `[out:json][timeout:45];(nwr["amenity"="drinking_water"](${south},${west},${north},${east});nwr["amenity"="water_point"](${south},${west},${north},${east});nwr["amenity"="toilets"](${south},${west},${north},${east});nwr["amenity"="shower"](${south},${west},${north},${east});nwr["leisure"="swimming_area"](${south},${west},${north},${east});nwr["leisure"="swimming_pool"](${south},${west},${north},${east});nwr["natural"="beach"](${south},${west},${north},${east}););out center;`;
 }
+
+export function overpassTrailQuery(longitude, latitude, radiusKm = DEFAULT_RADIUS_KM) {
+  const { south, west, north, east } = searchBounds(longitude, latitude, radiusKm);
+  const box = `(${south},${west},${north},${east})`;
+  return `[out:json][timeout:60];(way["highway"~"^(path|footway|track|bridleway|steps)$"]${box};relation["route"~"^(hiking|foot)$"]${box};way["natural"~"^(wood|scrub|heath|water|wetland|beach)$"]${box};way["waterway"]${box};way["landuse"~"^(forest|meadow|grass)$"]${box};way["leisure"~"^(nature_reserve|park)$"]${box};relation["leisure"="nature_reserve"]${box};nwr["amenity"="picnic_site"]${box};nwr["tourism"="viewpoint"]${box};nwr["place"~"^(city|town|village|hamlet|suburb|neighbourhood)$"]${box};);out body geom;`;
+}
