@@ -56,4 +56,3 @@ test('caller cancellation settles even when the fetch implementation ignores abo
   await assert.rejects(request, error => error.kind === 'cancelled');
   assert.equal(calls, 1);
 });
-
