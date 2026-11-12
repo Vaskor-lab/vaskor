@@ -2,52 +2,45 @@
 <html lang="nl">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#f3f5f1"><title>VASKOR kaart</title>
+<meta name="theme-color" content="#f3f5f1"><title>Kaart</title>
 <link rel="preconnect" href="https://unpkg.com" crossorigin><link rel="preconnect" href="https://tiles.openfreemap.org">
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.16.0/dist/maplibre-gl.css">
 <style>
-:root{font:16px system-ui,-apple-system,"Segoe UI",sans-serif;color:#26352f;background:#f3f5f1}*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0}#map{position:absolute;inset:0;background:#e9ece7}.bar{position:absolute;z-index:2;top:max(1rem,env(safe-area-inset-top));left:1rem;right:1rem;display:flex;justify-content:space-between;align-items:center;pointer-events:none}.brand,.locate,.status,.search-boundary{background:#ffffffed;box-shadow:0 2px 12px #26332d18;border-radius:.8rem}.brand{margin:0;padding:.7rem .9rem;font-size:.95rem;letter-spacing:.14em}.locate{pointer-events:auto;min-height:48px;padding:.7rem 1rem;border:0;background:#23473e;color:white;font:inherit;font-weight:600;cursor:pointer}.locate:focus-visible{outline:3px solid #d6973d;outline-offset:3px}.locate:disabled{opacity:.7}.search-osm{pointer-events:auto;min-height:48px;padding:.7rem 1rem;border:1px solid #23473e;background:#ffffffed;color:#23473e;border-radius:.8rem;font:inherit;font-weight:600;cursor:pointer}.search-osm:focus-visible{outline:3px solid #d6973d;outline-offset:3px}.search-osm:disabled{opacity:.7}.status{position:absolute;z-index:2;top:calc(max(1rem,env(safe-area-inset-top)) + 4rem);left:1rem;max-width:min(26rem,calc(100vw - 2rem));margin:0;padding:.6rem .8rem;color:#46534e;font-size:.875rem;line-height:1.4}.status:empty{display:none}.search-boundary{position:absolute;z-index:2;left:max(.75rem,env(safe-area-inset-left));bottom:max(.75rem,env(safe-area-inset-bottom));padding:.55rem .75rem;color:#174c42;font-size:.8125rem;font-weight:650;border:1px solid #174c4240}.search-boundary[hidden]{display:none}.panel-heading{display:flex;align-items:flex-start;gap:.4rem}.panel-copy{flex:1}.panel-toggle{flex:none;width:2rem;height:2rem;padding:0;border:1px solid #23473e40;border-radius:.55rem;background:#fff;color:#23473e;font:inherit;font-size:1rem;font-weight:700;line-height:1;cursor:pointer}.panel-toggle:focus-visible{outline:3px solid #d6973d;outline-offset:2px}.collapsible-panel.collapsed .panel-copy{display:none}.collapsible-panel.collapsed{padding:.25rem}.maplibregl-popup-content{max-width:min(22rem,calc(100vw - 2rem));max-height:55vh;overflow:auto}.osm-popup h2{margin:0 0 .25rem;font-size:1rem}.osm-popup p{margin:.25rem 0;color:#5a655f;font-size:.8125rem}.osm-popup dl{display:grid;grid-template-columns:minmax(5rem,auto) 1fr;gap:.2rem .6rem;margin:.6rem 0 0;font-size:.8125rem;overflow-wrap:anywhere}.osm-popup dt{font-weight:650}.osm-popup dd{margin:0}.maplibregl-ctrl-bottom-right{right:max(.5rem,env(safe-area-inset-right));bottom:max(.4rem,env(safe-area-inset-bottom))}@media(max-width:420px){.bar{left:.75rem;right:.75rem}.status{left:.75rem;max-width:calc(100vw - 1.5rem)}}
-#export-data{position:absolute;z-index:2;left:max(.75rem,env(safe-area-inset-left));bottom:calc(max(.75rem,env(safe-area-inset-bottom)) + 3.7rem);min-height:46px;padding:.55rem .75rem;border:1px solid #23473e;border-radius:.8rem;background:#ffffffed;color:#23473e;font:inherit;font-weight:600;box-shadow:0 2px 12px #26332d18}.capture{display:block;width:100%;margin-top:.75rem;min-height:44px;padding:.6rem .75rem;border:0;border-radius:.6rem;background:#23473e;color:white;font:inherit;font-weight:600;cursor:pointer}@media(max-width:520px){.brand{padding:.6rem;font-size:.8rem}.search-osm,.locate{min-height:44px;padding:.55rem .6rem;font-size:.78rem}}
+:root{font:16px system-ui,-apple-system,"Segoe UI",sans-serif;color:#26352f;background:#f3f5f1}*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0}#map{position:absolute;inset:0;background:#e9ece7;touch-action:none}.bar{position:absolute;z-index:2;top:max(.75rem,env(safe-area-inset-top));left:.75rem;right:.75rem;display:flex;justify-content:flex-end;align-items:center;pointer-events:none}.locate{pointer-events:auto;display:flex;align-items:center;justify-content:space-between;gap:.75rem;min-width:146px;min-height:56px;padding:.45rem .6rem .45rem .9rem;border:2px solid #23473e;background:#fff;color:#23473e;font:inherit;font-weight:650;cursor:pointer;touch-action:manipulation}.locate[aria-checked="true"]{background:#fff}.locate:focus-visible{outline:3px solid #d6973d;outline-offset:3px}.locate:disabled{opacity:.7}.locate .switch-track{position:relative;width:48px;height:30px;flex:none;border-radius:20px;background:#747d78;transition:background .16s}.locate .switch-track:after{content:"";position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:50%;background:white;box-shadow:0 1px 3px #0005;transition:transform .16s}.locate[aria-checked="true"] .switch-track{background:#167453}.locate[aria-checked="true"] .switch-track:after{transform:translateX(18px)}.switch-state{font-size:.75rem;font-weight:750}.search-osm{pointer-events:auto;min-height:56px;padding:.7rem 1rem;border:1px solid #23473e;background:#ffffffed;color:#23473e;border-radius:.8rem;font:inherit;font-weight:600;cursor:pointer;touch-action:manipulation}.search-osm:focus-visible{outline:3px solid #d6973d;outline-offset:3px}.search-osm:disabled{opacity:.7}.status{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.status:empty{display:none}.maplibregl-popup-content{max-width:min(22rem,calc(100vw - 2rem));max-height:55vh;overflow:auto}.osm-popup h2{margin:0 0 .25rem;font-size:1rem}.osm-popup p{margin:.25rem 0;color:#5a655f;font-size:.8125rem}.osm-popup dl{display:grid;grid-template-columns:minmax(5rem,auto) 1fr;gap:.2rem .6rem;margin:.6rem 0 0;font-size:.8125rem;overflow-wrap:anywhere}.osm-popup dt{font-weight:650}.osm-popup dd{margin:0}.maplibregl-ctrl-bottom-right{right:max(.35rem,env(safe-area-inset-right));bottom:max(.25rem,env(safe-area-inset-bottom));font-size:9px!important;line-height:1.2}.maplibregl-ctrl-attrib{font-size:9px!important;line-height:1.2!important}.maplibregl-ctrl-attrib a{color:#34423c!important}@media(max-width:520px){.bar{left:.5rem;right:.5rem;gap:.45rem}.locate,.search-osm{min-height:54px;padding:.55rem .65rem;font-size:.86rem}.radius-control{min-height:54px!important}.maplibregl-ctrl-bottom-right{font-size:8px!important}.maplibregl-ctrl-attrib{font-size:8px!important}}
+.user-location{width:42px;height:42px;position:relative;display:grid;place-items:center;pointer-events:none}.user-location .heading{position:absolute;inset:0;transform-origin:50% 50%;display:none}.user-location.has-heading .heading{display:block}.user-location .heading:before{content:"";position:absolute;left:8px;top:-4px;width:26px;height:29px;background:#2b83eacc;clip-path:polygon(50% 0,100% 100%,50% 80%,0 100%)}.user-location .dot{position:relative;z-index:1;width:16px;height:16px;border:3px solid #fff;border-radius:50%;background:#1683e8;box-shadow:0 1px 5px #153d5d88}
 </style>
 <style>
-.radius-control{pointer-events:auto;display:flex;align-items:center;gap:.2rem;min-height:44px;padding:.3rem .45rem;border:1px solid #23473e;border-radius:.7rem;background:#ffffffed;color:#23473e;font-size:.8rem;font-weight:600;white-space:nowrap}.radius-control select{max-width:4.5rem;border:0;background:transparent;color:inherit;font:inherit;font-weight:700}.relation-panel{margin:.6rem 0;padding:.55rem;border-radius:.5rem;background:#f3f5f1;font-size:.8125rem}.relation-panel h3{margin:.1rem 0;font-size:.85rem}.relation-panel ul{margin:.2rem 0 .5rem;padding-left:1.1rem}.relation-panel li{margin:.15rem 0}@media(max-width:520px){.radius-control{min-height:40px;padding:.2rem .3rem;font-size:.7rem}.radius-control select{max-width:3.5rem}}
+.radius-control{pointer-events:auto;display:flex;align-items:center;gap:.2rem;min-height:44px;padding:.3rem .45rem;border:1px solid #23473e;border-radius:.7rem;background:#ffffffed;color:#23473e;font-size:.8rem;font-weight:600;white-space:nowrap}.radius-control select{max-width:4.5rem;border:0;background:transparent;color:inherit;font:inherit;font-weight:700}@media(max-width:520px){.radius-control{min-height:40px;padding:.2rem .3rem;font-size:.7rem}.radius-control select{max-width:3.5rem}}
 .poi-marker{display:block;width:40px;height:48px;padding:0;border:0;background:transparent;cursor:pointer;filter:drop-shadow(0 2px 2px #20313a35)}.poi-marker svg{display:block;width:40px;height:48px}.poi-marker:focus-visible{outline:3px solid #243d4a;outline-offset:2px;border-radius:50%}
+
 </style>
 </head>
 <body>
-<main aria-label="VASKOR-kaart">
+<main aria-label="Kaart">
 <div id="map" role="region" aria-label="Interactieve kaart" aria-describedby="status"></div>
-<header class="bar"><h1 class="brand">VASKOR</h1><div style="display:flex;gap:.5rem;pointer-events:auto"><label class="radius-control" for="search-radius">Straal <select id="search-radius" aria-label="Zoekstraal"><option value="20" selected>20 km</option><option value="50">50 km</option></select></label><button class="search-osm" id="search-osm" type="button" aria-describedby="status">Zoek voorzieningen</button><button class="locate" id="locate" type="button" aria-describedby="status">Mijn locatie</button></div></header>
-<div class="status collapsible-panel" id="status-panel"><div class="panel-heading"><span class="panel-copy" id="status" role="status" aria-live="polite">Kaart laden… Gebruik ‘Mijn locatie’ om de kaart te centreren. Voorzieningen zoeken gebeurt alleen wanneer je dat kiest.</span><button class="panel-toggle" type="button" aria-label="Statuspaneel inklappen" aria-expanded="true">⌃</button></div></div>
-<div class="search-boundary collapsible-panel" id="search-boundary" hidden><div class="panel-heading"><span class="panel-copy" id="search-boundary-copy">Zoekcirkel · 20 km vanaf GPS · resultaten vereisen expliciete OSM-tags voor geen kosten</span><button class="panel-toggle" type="button" aria-label="Zoekgebiedlabel inklappen" aria-expanded="true">⌃</button></div></div>
-<button id="export-data" type="button" aria-describedby="status">Exporteer veldtest · 0</button>
+<header class="bar"><div style="display:flex;gap:.5rem;align-items:center;pointer-events:auto"><label class="radius-control" for="search-radius">Straal <select id="search-radius" aria-label="Zoekstraal"><option value="20" selected>20 km</option><option value="50">50 km</option></select></label><button class="search-osm" id="search-osm" type="button" aria-describedby="status">Zoek voorzieningen</button><button class="locate" id="locate" type="button" role="switch" aria-checked="false" aria-label="Locatie uit" aria-describedby="status"><span>Locatie</span><span class="switch-state">UIT</span><span class="switch-track" aria-hidden="true"></span></button></div></header>
+<p class="status" id="status" role="status" aria-live="polite">Kaart laden…</p>
+
 </main>
 <noscript><p>Schakel JavaScript in om de kaart te gebruiken.</p></noscript>
 <script type="module">
-import {emptyPilotDataset,saveFieldObservation} from "./knowledge/pilot.mjs";
-import {DEFAULT_RADIUS_KM,isInsideSearchArea,overpassSearchQuery,searchBoundary,distanceMeters} from "./knowledge/search-area.mjs";
-import {categoryLabel,relationsForFeature,toVaskorFeature} from "./knowledge/osm-discovery.mjs";
+import {DEFAULT_RADIUS_KM,isInsideSearchArea,overpassSearchQuery,searchBoundary} from "./knowledge/search-area.mjs";
+import {categoryLabel,toVaskorFeature} from "./knowledge/osm-discovery.mjs";
 import {filterGratisOsmElements,gratisRelationForOsmElement} from "./knowledge/gratis-filter.mjs";
 import {createPoiMarkerElement} from "./knowledge/map-markers.mjs";
 import {applyVaskorMapStyle} from "./knowledge/map-style.mjs";
 import {fetchOverpass} from "./knowledge/overpass-client.mjs";
-const status=document.getElementById("status"),button=document.getElementById("locate"),searchButton=document.getElementById("search-osm"),radiusSelect=document.getElementById("search-radius"),boundaryLabel=document.getElementById("search-boundary"),boundaryCopy=document.getElementById("search-boundary-copy"),exportButton=document.getElementById("export-data");
-document.querySelectorAll(".panel-toggle").forEach(toggle=>toggle.addEventListener("click",()=>{
- const panel=toggle.closest(".collapsible-panel"),collapsed=panel.classList.toggle("collapsed");
- toggle.setAttribute("aria-expanded",String(!collapsed));
- toggle.setAttribute("aria-label",`${panel.id==="status-panel"?"Statuspaneel":"Zoekgebiedlabel"} ${collapsed?"uitklappen":"inklappen"}`);
- toggle.textContent=collapsed?"⌄":"⌃";
-}));
+const status=document.getElementById("status"),button=document.getElementById("locate"),searchButton=document.getElementById("search-osm"),radiusSelect=document.getElementById("search-radius");
 const emptyGeoJson={type:"FeatureCollection",features:[]};
 const overpassEndpoints=["https://overpass-api.de/api/interpreter","https://ovp.dresel.systems/api/interpreter"];
-let waterPoints=emptyGeoJson,waterRequest,map,ml,poiMarkers=[],followWatchId=null,currentOrigin=null;
+let waterPoints=emptyGeoJson,waterRequest,map,ml,poiMarkers=[],followWatchId=null,currentOrigin=null,locationMarker=null,deviceHeading=null,headingListening=false;
 let searchRadiusKm=DEFAULT_RADIUS_KM;
-const pilotKey="vaskor-knowledge-pilot-v1";
-let pilotData;try{const stored=JSON.parse(localStorage.getItem(pilotKey));pilotData=stored?.model_version==="1.0"?stored:emptyPilotDataset()}catch{pilotData=emptyPilotDataset()}
-const updateExportLabel=()=>{exportButton.textContent=`Exporteer veldtest · ${pilotData.knowledge_objects.length}`};updateExportLabel();
-
-function updateBoundaryLabel(){boundaryCopy.textContent=`Zoekcirkel · ${searchRadiusKm} km vanaf GPS · vaste OSM-voorzieningen binnen deze cirkel`}
-function updateBoundary(){if(!currentOrigin)return;const area=searchBoundary(currentOrigin[0],currentOrigin[1],searchRadiusKm),source=map?.getSource("search-boundary");if(source)source.setData(area);boundaryLabel.hidden=false;updateBoundaryLabel()}
+function circleFeature(point,radius){const coords=Array.from({length:65},(_,i)=>{const b=2*Math.PI*i/64,d=radius/6371008.8,lat1=point[1]*Math.PI/180,lon1=point[0]*Math.PI/180,lat=Math.asin(Math.sin(lat1)*Math.cos(d)+Math.cos(lat1)*Math.sin(d)*Math.cos(b)),lon=lon1+Math.atan2(Math.sin(b)*Math.sin(d)*Math.cos(lat1),Math.cos(d)-Math.sin(lat1)*Math.sin(lat));return [((lon*180/Math.PI+540)%360)-180,lat*180/Math.PI]});return {type:"Feature",geometry:{type:"Polygon",coordinates:[coords]},properties:{}}}
+function setLocationMarker(coords){const point=[coords.longitude,coords.latitude];if(!locationMarker){const el=document.createElement("div");el.className="user-location";el.setAttribute("aria-label","Locatie");el.innerHTML='<span class="heading"></span><span class="dot"></span>';locationMarker=new ml.Marker({element:el,anchor:"center",rotationAlignment:"viewport"}).setLngLat(point).addTo(map)}else locationMarker.setLngLat(point);const heading=Number.isFinite(coords.heading)&&coords.heading>=0&&(coords.speed==null||coords.speed>.5)?coords.heading:deviceHeading,el=locationMarker.getElement();if(Number.isFinite(heading)){el.classList.add("has-heading");el.querySelector(".heading").style.transform=`rotate(${heading}deg)`}else el.classList.remove("has-heading");const accuracy=map.getSource("location-accuracy");if(accuracy)accuracy.setData(Number.isFinite(coords.accuracy)&&coords.accuracy>0?{type:"FeatureCollection",features:[circleFeature(point,coords.accuracy)]}:emptyGeoJson)}
+function setLocationSwitch(on){button.setAttribute("aria-checked",String(on));button.setAttribute("aria-label",`Locatie ${on?"aan":"uit"}`);button.querySelector(".switch-state").textContent=on?"AAN":"UIT"}
+function orientationHandler(event){if(event.absolute!==true||!Number.isFinite(event.alpha))return;const screenAngle=screen.orientation?.angle??window.orientation??0;deviceHeading=(360-event.alpha+screenAngle)%360;if(locationMarker){const el=locationMarker.getElement();el.classList.add("has-heading");el.querySelector(".heading").style.transform=`rotate(${deviceHeading}deg)`}}
+async function enableHeading(){const Orientation=window.DeviceOrientationEvent;if(!Orientation)return;if(typeof Orientation.requestPermission==="function"){try{if(await Orientation.requestPermission()!=="granted")return}catch{return}}if(button.getAttribute("aria-checked")!=="true")return;if("ondeviceorientationabsolute" in window)window.addEventListener("deviceorientationabsolute",orientationHandler);else window.addEventListener("deviceorientation",orientationHandler);headingListening=true}
+function updateBoundary(){if(!currentOrigin)return;const area=searchBoundary(currentOrigin[0],currentOrigin[1],searchRadiusKm),source=map?.getSource("search-boundary");if(source)source.setData(area)}
 function clearPoiMarkers(){poiMarkers.forEach(marker=>marker.remove());poiMarkers=[]}
 function renderPoiMarkers(){clearPoiMarkers();waterPoints.features.forEach(feature=>{const element=createPoiMarkerElement(feature,document);element.addEventListener("click",event=>{event.preventDefault();showOsmPopup(feature,ml)});poiMarkers.push(new ml.Marker({element,anchor:"bottom"}).setLngLat(feature.geometry.coordinates).addTo(map))})}
  radiusSelect.addEventListener("change",()=>{searchRadiusKm=Number(radiusSelect.value);if(waterRequest?.controller)waterRequest.controller.abort();waterRequest=null;waterPoints=emptyGeoJson;clearPoiMarkers();updateBoundary();if(currentOrigin)status.textContent=`Zoekstraal ingesteld op ${searchRadiusKm} km. Tik op ‘Zoek voorzieningen’ om opnieuw te zoeken.`});
@@ -69,7 +62,7 @@ async function findWaterPoints(longitude,latitude){
     const feature=toVaskorFeature(element);if(feature)feature.properties.gratisRelation=gratisRelationForOsmElement(element);return feature?[feature]:[];
    });
    waterPoints={type:"FeatureCollection",features};renderPoiMarkers();
-   waterOutcome=`${features.length} voorzieningen gevonden.`;
+   waterOutcome="Voorzieningen op de kaart bijgewerkt.";
   }catch(error){if(request!==waterRequest||error.kind==="cancelled")return;waterOutcome=`Voorzieningen mislukt: ${describeError(error)}.`}
   renderStatus();
  })();
@@ -80,76 +73,37 @@ async function findWaterPoints(longitude,latitude){
 function showOsmPopup(feature,ml){
  const props=feature.properties,tags=props.tags||{},content=document.createElement("div");content.className="osm-popup";
  const category=props.category||"water",label=categoryLabel(category);
- const title=document.createElement("h2");title.textContent=tags.name||tags["name:en"]||`${label} (OSM)`;content.append(title);
- const note=document.createElement("p");note.textContent=`OpenStreetMap · ${props.osmType} ${props.osmId} · versie ${props.version??"onbekend"}${props.timestamp?` · OSM-bewerking ${props.timestamp}`:""} · GRATIS-relatie afgeleid uit OSM-tags ${Object.entries(props.gratisRelation?.evidence?.tags||{}).map(([key,value])=>`${key}=${value}`).join(", ")}`;content.append(note);
- const identity=document.createElement("p");identity.textContent=`VASKOR-identiteit: ${props.vaskorId} · bronidentiteit: ${props.osmSourceId}`;content.append(identity);
- const relations=relationsForFeature(feature,waterPoints.features,pilotData);
- const relationPanel=document.createElement("section");relationPanel.className="relation-panel";
- const recordedHeading=document.createElement("h3");recordedHeading.textContent="Vastgelegde relaties";relationPanel.append(recordedHeading);
- const recordedList=document.createElement("ul");(relations.recorded.length?relations.recorded:[{label:"Geen vastgelegde relatie voor dit object"}]).forEach(relation=>{const item=document.createElement("li");item.textContent=relation.predicate?`${relation.predicate} → ${relation.label}`:relation.label;recordedList.append(item)});relationPanel.append(recordedList);
- const candidateHeading=document.createElement("h3");candidateHeading.textContent="Afgeleide kandidaatverbindingen · nabij binnen 500 m";relationPanel.append(candidateHeading);
- const candidateList=document.createElement("ul");(relations.candidates.length?relations.candidates:[{label:"Geen nabijgelegen kandidaten in deze zoekresultaten"}]).forEach(relation=>{const item=document.createElement("li");item.textContent=relation.distanceMeters!==undefined?`${relation.label} · ${relation.distanceMeters} m · kandidaat, niet bevestigd`:relation.label;candidateList.append(item)});relationPanel.append(candidateList);content.append(relationPanel);
+ const title=document.createElement("h2");title.textContent=tags.name||tags["name:en"]||label;content.append(title);
  const list=document.createElement("dl");Object.entries(tags).sort(([a],[b])=>a.localeCompare(b)).forEach(([key,value])=>{const term=document.createElement("dt"),description=document.createElement("dd");term.textContent=key;description.textContent=value;list.append(term,description)});content.append(list);
- const link=document.createElement("a");link.href=`https://www.openstreetmap.org/${encodeURIComponent(props.osmType)}/${props.osmId}`;link.target="_blank";link.rel="noopener noreferrer";link.textContent="Bekijk bronobject";content.append(link);
- const capture=document.createElement("button");capture.type="button";capture.className="capture";capture.textContent="Ik zie deze voorziening ter plaatse";capture.addEventListener("click",()=>{
-  if(!navigator.geolocation){status.textContent="Locatietoegang is nodig om een veldwaarneming vast te leggen.";return}
-  capture.disabled=true;capture.textContent="Telefoonlocatie controleren…";
-  navigator.geolocation.getCurrentPosition(({coords})=>{
-   const stamp=new Date().toISOString(),phoneLocation=[coords.longitude,coords.latitude],offset=distanceMeters(feature.geometry.coordinates,phoneLocation);
-   let nextPilotData;
-   try{nextPilotData=saveFieldObservation(pilotData,{category,osmType:props.osmType,osmId:props.osmId,name:tags.name||tags["name:en"]||label,coordinates:feature.geometry.coordinates,observationLocation:phoneLocation,accuracyMeters:Math.round(coords.accuracy),distanceMeters:offset,observedAt:stamp,createId:()=>crypto.randomUUID()},localStorage)}catch{status.textContent="De telefoon kon de waarneming niet lokaal bewaren. Exporteer minder waarnemingen of probeer opnieuw.";capture.disabled=false;capture.textContent="Probeer opnieuw";return}
-   pilotData=nextPilotData;
-   updateExportLabel();capture.textContent="Waarneming toegevoegd op deze telefoon";
-   status.textContent=`Veldwaarneming lokaal opgeslagen. Je telefoon was ${offset} m van de OSM-locatie (GPS-nauwkeurigheid ±${Math.round(coords.accuracy)} m). Dit bevestigt alleen wat je zelf hebt waargenomen; andere eigenschappen blijven onbevestigd.`;
-  },error=>{capture.disabled=false;capture.textContent="Ik zie deze voorziening ter plaatse";status.textContent=error.code===1?"Locatietoegang geweigerd; er is geen waarneming vastgelegd.":"Telefoonlocatie niet beschikbaar; probeer opnieuw."},{enableHighAccuracy:true,timeout:20000,maximumAge:0});
- });content.append(capture);
  new ml.Popup({maxWidth:"none"}).setLngLat(feature.geometry.coordinates).setDOMContent(content).addTo(map);
 }
-exportButton.addEventListener("click",()=>{
- const blob=new Blob([JSON.stringify(pilotData,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download=`vaskor-field-pilot-${new Date().toISOString().slice(0,10)}.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
- if(!pilotData.knowledge_objects.length)status.textContent="Nog geen veldwaarnemingen. Tik een OSM-kandidaat aan en bevestig alleen wat je ter plaatse zelf ziet.";
-});
 try{
  ml=await import("https://unpkg.com/maplibre-gl@6.16.0/dist/maplibre-gl.mjs");
- map=new ml.Map({container:"map",style:"https://tiles.openfreemap.org/styles/positron",center:[5.3,52.1],zoom:7,minZoom:3,maxZoom:18,cooperativeGestures:true});
-  let marker,searchArea=emptyGeoJson;
+ map=new ml.Map({container:"map",style:"https://tiles.openfreemap.org/styles/positron",center:[5.3,52.1],zoom:7,minZoom:3,maxZoom:18,cooperativeGestures:false,attributionControl:{compact:false}});
+  let searchArea=emptyGeoJson;
  map.once("load",()=>{
   applyVaskorMapStyle(map);
   map.addSource("search-boundary",{type:"geojson",data:searchArea});
   map.addLayer({id:"search-boundary-fill",type:"fill",source:"search-boundary",paint:{"fill-color":"#2c8a72","fill-opacity":0.08}});
   map.addLayer({id:"search-boundary-line",type:"line",source:"search-boundary",paint:{"line-color":"#176452","line-width":2,"line-dasharray":[2,1.5]}});
-  status.textContent="Kaart klaar. Zoek met je actuele GPS-locatie naar vaste OSM-voorzieningen.";
+  map.addSource("location-accuracy",{type:"geojson",data:emptyGeoJson});
+  map.addLayer({id:"location-accuracy-fill",type:"fill",source:"location-accuracy",paint:{"fill-color":"#2583df","fill-opacity":0.12}});
+  map.addLayer({id:"location-accuracy-line",type:"line",source:"location-accuracy",paint:{"line-color":"#2583df","line-opacity":0.35,"line-width":1}});
+  status.textContent="Kaart klaar.";
  });
  map.on("error",()=>{status.textContent="Kaartgegevens zijn niet volledig beschikbaar. Controleer je verbinding; je kunt de pagina later opnieuw proberen."});
  const updatePosition=({coords})=>{
    const point=[coords.longitude,coords.latitude];
    if(!Number.isFinite(point[0])||!Number.isFinite(point[1])||point[0]<-180||point[0]>180||point[1]<-90||point[1]>90)return;
-   if(!marker)marker=new ml.Marker({color:"#23473e"}).setLngLat(point).addTo(map);else marker.setLngLat(point);
-   map.easeTo({center:point,zoom:map.getZoom(),duration:500});
+   setLocationMarker(coords);
    currentOrigin=point;updateBoundary();
  };
  button.addEventListener("click",()=>{
-  if(followWatchId!==null){navigator.geolocation.clearWatch(followWatchId);followWatchId=null;button.textContent="Mijn locatie";status.textContent="GPS-volgen gestopt. De kaart navigeert niet.";return}
+  if(followWatchId!==null){navigator.geolocation.clearWatch(followWatchId);followWatchId=null;setLocationSwitch(false);if(headingListening){window.removeEventListener("deviceorientationabsolute",orientationHandler);window.removeEventListener("deviceorientation",orientationHandler);headingListening=false}deviceHeading=null;if(locationMarker){locationMarker.remove();locationMarker=null}map.getSource("location-accuracy")?.setData(emptyGeoJson);status.textContent="Locatie is uitgeschakeld.";return}
   if(!navigator.geolocation){status.textContent="Locatiebepaling is niet beschikbaar in deze browser.";return}
-  button.disabled=true;status.textContent="Locatietoestemming wordt gevraagd…";
-  navigator.geolocation.getCurrentPosition(({coords})=>{
-   const point=[coords.longitude,coords.latitude];
-   if(!Number.isFinite(point[0])||!Number.isFinite(point[1])||point[0]<-180||point[0]>180||point[1]<-90||point[1]>90){
-    status.textContent="Je locatie kon niet worden bepaald. Controleer de locatievoorzieningen en probeer opnieuw.";button.disabled=false;return;
-   }
-   updatePosition({coords});
-   currentOrigin=point;updateBoundary();
-   map.easeTo({center:point,zoom:7,duration:800});
-   followWatchId=navigator.geolocation.watchPosition(updatePosition,error=>{
-    if(followWatchId!==null)navigator.geolocation.clearWatch(followWatchId);
-    followWatchId=null;button.textContent="Mijn locatie";button.disabled=false;
-    status.textContent=error.code===1?"Toegang tot GPS-volgen geweigerd. De kaart blijft bruikbaar.":"GPS-volgen is tijdelijk niet beschikbaar. De kaart blijft bruikbaar.";
-   },{enableHighAccuracy:true,timeout:20000,maximumAge:0});
-   button.textContent="Stop volgen";button.disabled=false;status.textContent="GPS-volgen gestart. Tik nogmaals om te stoppen. Er is geen navigatie gestart.";
-  },error=>{
-   status.textContent=({1:"Geen toegang tot je locatie. De kaart blijft bruikbaar.",2:"Je locatie kon niet worden bepaald. Controleer de locatievoorzieningen en probeer opnieuw.",3:"Locatie bepalen duurde te lang. Probeer opnieuw."})[error.code]||"Locatiebepaling is niet gelukt. De kaart blijft bruikbaar.";
-   button.disabled=false;
- },{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+  setLocationSwitch(true);enableHeading();status.textContent="Locatietoestemming wordt gevraagd…";
+  let firstFix=true;
+  followWatchId=navigator.geolocation.watchPosition(position=>{if(followWatchId===null)return;const {coords}=position,point=[coords.longitude,coords.latitude];if(!Number.isFinite(point[0])||!Number.isFinite(point[1])||point[0]<-180||point[0]>180||point[1]<-90||point[1]>90)return;updatePosition(position);if(firstFix){map.easeTo({center:point,zoom:7,duration:800});firstFix=false}status.textContent="Locatie is ingeschakeld."},error=>{if(followWatchId!==null)navigator.geolocation.clearWatch(followWatchId);followWatchId=null;setLocationSwitch(false);if(headingListening){window.removeEventListener("deviceorientationabsolute",orientationHandler);window.removeEventListener("deviceorientation",orientationHandler);headingListening=false}deviceHeading=null;if(locationMarker){locationMarker.remove();locationMarker=null}map.getSource("location-accuracy")?.setData(emptyGeoJson);status.textContent=error.code===1?"Geen toegang tot je locatie.":"Locatie bepalen is niet gelukt."},{enableHighAccuracy:true,timeout:20000,maximumAge:0});
  });
  searchButton.addEventListener("click",()=>{
   if(!navigator.geolocation){status.textContent="Locatiebepaling is niet beschikbaar. Zoeken vereist je actuele GPS-locatie; er is geen zoekactie uitgevoerd.";return}
@@ -157,7 +111,7 @@ try{
   navigator.geolocation.getCurrentPosition(({coords})=>{
    const point=[coords.longitude,coords.latitude];
    if(!Number.isFinite(point[0])||!Number.isFinite(point[1])||point[0]<-180||point[0]>180||point[1]<-90||point[1]>90){status.textContent="Je actuele locatie kon niet worden bepaald. Er is niet gezocht; probeer opnieuw.";searchButton.disabled=false;return}
-   if(!marker)marker=new ml.Marker({color:"#23473e"}).setLngLat(point).addTo(map);else marker.setLngLat(point);
+   setLocationMarker(coords);
    currentOrigin=point;updateBoundary();
    map.easeTo({center:point,zoom:7,duration:800});
    findWaterPoints(point[0],point[1]).finally(()=>{searchButton.disabled=false});
