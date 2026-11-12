@@ -60,7 +60,7 @@ The fixture contains synthetic test data only. The existing `knowledge/objects`,
 
 ### Phone field test
 
-The live map can search OpenStreetMap for drinking-water points, toilets, showers and public swimming places. The circular search radius defaults to 20 km and can be expanded to 50 km. OpenStreetMap is queried with a bounding box for efficiency; VASKOR filters returned candidates against the exact circle. Tap a candidate only when you are physically there and can confirm that the facility is visible. The phone records its current GPS position and accuracy as support for that observation. This records presence at that moment; it does not establish drinking-water quality, free access, opening hours, or continued availability.
+The live map searches OpenStreetMap for fixed drinking-water points, toilets, showers and mapped swimming facilities. Each result is placed as a point marker at its OSM location or mapped center. The circular search radius defaults to 20 km and can be expanded to 50 km. OpenStreetMap is queried with a bounding box for efficiency; VASKOR filters returned candidates against the exact circle. Tap a candidate only when you are physically there and can confirm that the facility is visible. The phone records its current GPS position and accuracy as support for that observation. This records presence at that moment; it does not establish drinking-water quality, free access, opening hours, or continued availability.
 
 Each map candidate is presented with a VASKOR identity separate from its OpenStreetMap source identity. Selecting an object shows saved, claim-supported relations separately from inferred nearby candidates (currently within 500 m). Proximity is a discovery hint, not a confirmed relationship.
 
@@ -80,6 +80,6 @@ The pilot data stays outside the repository unless it is deliberately reviewed a
 - Tap **Zoek voorzieningen** and confirm the browser asks for a fresh location only then; the search recenters on that fix.
 - Confirm the displayed circle is 20 km by default; choose 50 km and verify the boundary and subsequent results use the expanded radius. Deny location or disable GPS and confirm no search runs.
 - If the first Overpass server is unavailable or slow while the second succeeds, confirm there is no intermediate failure message and only the result count appears. Confirm an error appears only when both servers fail.
-- Confirm all four candidate categories appear only after the explicit search, and that the result status calls them unverified OSM candidates.
+- Confirm fixed facility markers appear only after the explicit search, and that the result status calls them unverified OSM candidates.
 - Select a candidate and confirm the VASKOR and OSM identifiers are distinct; saved relations and inferred nearby candidates have separate headings and the latter are marked unconfirmed.
 - In browser developer tools, block local storage writes and try to record a field observation. Confirm the export count stays unchanged; restore storage and retry, then confirm exactly one observation is exported.

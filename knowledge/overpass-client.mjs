@@ -55,4 +55,3 @@ export async function fetchOverpass(query, { endpoints, signal, timeoutMs = 7000
   }
   throw lastError || new OverpassRequestError('network', 'no endpoint');
 }
-

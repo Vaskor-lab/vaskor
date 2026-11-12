@@ -3,7 +3,7 @@ import { distanceMeters } from './search-area.mjs';
 export function classifyOsmTags(tags = {}) {
   if (tags.amenity === 'toilets') return 'toilet';
   if (tags.amenity === 'shower') return 'shower';
-  if (tags.leisure === 'swimming_area' || tags.leisure === 'swimming_pool' || tags.natural === 'beach') return 'swimming';
+  if (tags.leisure === 'swimming_area' || tags.leisure === 'swimming_pool') return 'swimming';
   if (tags.amenity === 'drinking_water' || tags.amenity === 'water_point') return 'water';
   return null;
 }

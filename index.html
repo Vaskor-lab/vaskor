@@ -11,7 +11,7 @@
 </style>
 <style>
 .radius-control{pointer-events:auto;display:flex;align-items:center;gap:.2rem;min-height:44px;padding:.3rem .45rem;border:1px solid #23473e;border-radius:.7rem;background:#ffffffed;color:#23473e;font-size:.8rem;font-weight:600;white-space:nowrap}.radius-control select{max-width:4.5rem;border:0;background:transparent;color:inherit;font:inherit;font-weight:700}.relation-panel{margin:.6rem 0;padding:.55rem;border-radius:.5rem;background:#f3f5f1;font-size:.8125rem}.relation-panel h3{margin:.1rem 0;font-size:.85rem}.relation-panel ul{margin:.2rem 0 .5rem;padding-left:1.1rem}.relation-panel li{margin:.15rem 0}@media(max-width:520px){.radius-control{min-height:40px;padding:.2rem .3rem;font-size:.7rem}.radius-control select{max-width:3.5rem}}
-.map-legend{position:absolute;z-index:2;right:max(.75rem,env(safe-area-inset-right));bottom:calc(max(.75rem,env(safe-area-inset-bottom)) + 6rem);display:grid;gap:.4rem;max-width:min(14rem,calc(100vw - 1.5rem));padding:.65rem .75rem;border:1px solid #26352f26;border-radius:.75rem;background:#ffffffed;box-shadow:0 2px 12px #26332d18;color:#26352f;font-size:.75rem;line-height:1.25}.map-legend strong{font-size:.78rem}.legend-row{display:flex;align-items:center;gap:.5rem}.legend-swatch{position:relative;display:inline-block;flex:none;width:1.5rem;height:.7rem}.legend-trail::after,.legend-route::after,.legend-water::after{position:absolute;top:.25rem;left:0;width:1.5rem;border-top:3px solid #176b45;content:""}.legend-route::after{border-color:#0b5033;border-top-style:dashed}.legend-water::after{border-color:#168b9a;border-top-width:2px}.legend-nature{border:1px solid #2f7d4a;border-radius:2px;background:#9bd18b99}
+.poi-marker{display:block;width:40px;height:48px;padding:0;border:0;background:transparent;cursor:pointer;filter:drop-shadow(0 2px 2px #20313a35)}.poi-marker svg{display:block;width:40px;height:48px}.poi-marker:focus-visible{outline:3px solid #243d4a;outline-offset:2px;border-radius:50%}
 </style>
 </head>
 <body>
@@ -21,15 +21,15 @@
 <div class="status collapsible-panel" id="status-panel"><div class="panel-heading"><span class="panel-copy" id="status" role="status" aria-live="polite">Kaart laden… Gebruik ‘Mijn locatie’ om de kaart te centreren. Voorzieningen zoeken gebeurt alleen wanneer je dat kiest.</span><button class="panel-toggle" type="button" aria-label="Statuspaneel inklappen" aria-expanded="true">⌃</button></div></div>
 <div class="search-boundary collapsible-panel" id="search-boundary" hidden><div class="panel-heading"><span class="panel-copy" id="search-boundary-copy">Zoekcirkel · 20 km vanaf GPS · resultaten vereisen expliciete OSM-tags voor geen kosten</span><button class="panel-toggle" type="button" aria-label="Zoekgebiedlabel inklappen" aria-expanded="true">⌃</button></div></div>
 <button id="export-data" type="button" aria-describedby="status">Exporteer veldtest · 0</button>
-<aside class="map-legend" aria-label="Legenda kaartlagen"><strong>OSM-kandidaten · onbevestigd</strong><div class="legend-row"><span class="legend-swatch legend-trail" aria-hidden="true"></span>Wandelpad</div><div class="legend-row"><span class="legend-swatch legend-route" aria-hidden="true"></span>Wandelroute</div><div class="legend-row"><span class="legend-swatch legend-nature" aria-hidden="true"></span>Natuurgebied / strand</div><div class="legend-row"><span class="legend-swatch legend-water" aria-hidden="true"></span>Waterlijn</div></aside>
 </main>
 <noscript><p>Schakel JavaScript in om de kaart te gebruiken.</p></noscript>
 <script type="module">
 import {emptyPilotDataset,saveFieldObservation} from "./knowledge/pilot.mjs";
-import {DEFAULT_RADIUS_KM,isInsideSearchArea,overpassSearchQuery,overpassTrailQuery,overpassNatureQuery,searchBoundary,distanceMeters} from "./knowledge/search-area.mjs";
+import {DEFAULT_RADIUS_KM,isInsideSearchArea,overpassSearchQuery,searchBoundary,distanceMeters} from "./knowledge/search-area.mjs";
 import {categoryLabel,relationsForFeature,toVaskorFeature} from "./knowledge/osm-discovery.mjs";
 import {filterGratisOsmElements,gratisRelationForOsmElement} from "./knowledge/gratis-filter.mjs";
-import {addTrailLayers,countRouteMemberLinks,deriveTrailRelations,filterTrailFeatures,setTrailSourceData,toTrailFeatures} from "./knowledge/osm-trails.mjs";
+import {createPoiMarkerElement} from "./knowledge/map-markers.mjs";
+import {applyVaskorMapStyle} from "./knowledge/map-style.mjs";
 import {fetchOverpass} from "./knowledge/overpass-client.mjs";
 const status=document.getElementById("status"),button=document.getElementById("locate"),searchButton=document.getElementById("search-osm"),radiusSelect=document.getElementById("search-radius"),boundaryLabel=document.getElementById("search-boundary"),boundaryCopy=document.getElementById("search-boundary-copy"),exportButton=document.getElementById("export-data");
 document.querySelectorAll(".panel-toggle").forEach(toggle=>toggle.addEventListener("click",()=>{
@@ -40,22 +40,24 @@ document.querySelectorAll(".panel-toggle").forEach(toggle=>toggle.addEventListen
 }));
 const emptyGeoJson={type:"FeatureCollection",features:[]};
 const overpassEndpoints=["https://overpass-api.de/api/interpreter","https://ovp.dresel.systems/api/interpreter"];
-let waterPoints=emptyGeoJson,trailFeatures=emptyGeoJson,waterRequest,map,followWatchId=null,currentOrigin=null;
+let waterPoints=emptyGeoJson,waterRequest,map,ml,poiMarkers=[],followWatchId=null,currentOrigin=null;
 let searchRadiusKm=DEFAULT_RADIUS_KM;
 const pilotKey="vaskor-knowledge-pilot-v1";
 let pilotData;try{const stored=JSON.parse(localStorage.getItem(pilotKey));pilotData=stored?.model_version==="1.0"?stored:emptyPilotDataset()}catch{pilotData=emptyPilotDataset()}
 const updateExportLabel=()=>{exportButton.textContent=`Exporteer veldtest · ${pilotData.knowledge_objects.length}`};updateExportLabel();
 
-function updateBoundaryLabel(){boundaryCopy.textContent=`Zoekcirkel · ${searchRadiusKm} km vanaf GPS · voorzieningen, wandelpaden, routes en natuur · OSM-kandidaten niet geverifieerd`}
+function updateBoundaryLabel(){boundaryCopy.textContent=`Zoekcirkel · ${searchRadiusKm} km vanaf GPS · vaste OSM-voorzieningen binnen deze cirkel`}
 function updateBoundary(){if(!currentOrigin)return;const area=searchBoundary(currentOrigin[0],currentOrigin[1],searchRadiusKm),source=map?.getSource("search-boundary");if(source)source.setData(area);boundaryLabel.hidden=false;updateBoundaryLabel()}
- radiusSelect.addEventListener("change",()=>{searchRadiusKm=Number(radiusSelect.value);if(waterRequest?.controller)waterRequest.controller.abort();waterRequest=null;waterPoints=emptyGeoJson;trailFeatures=emptyGeoJson;map?.getSource("osm-water")?.setData(waterPoints);if(map)setTrailSourceData(map,[]);updateBoundary();if(currentOrigin)status.textContent=`Zoekstraal ingesteld op ${searchRadiusKm} km. Tik op ‘Zoek voorzieningen’ om opnieuw te zoeken.`});
+function clearPoiMarkers(){poiMarkers.forEach(marker=>marker.remove());poiMarkers=[]}
+function renderPoiMarkers(){clearPoiMarkers();waterPoints.features.forEach(feature=>{const element=createPoiMarkerElement(feature,document);element.addEventListener("click",event=>{event.preventDefault();showOsmPopup(feature,ml)});poiMarkers.push(new ml.Marker({element,anchor:"bottom"}).setLngLat(feature.geometry.coordinates).addTo(map))})}
+ radiusSelect.addEventListener("change",()=>{searchRadiusKm=Number(radiusSelect.value);if(waterRequest?.controller)waterRequest.controller.abort();waterRequest=null;waterPoints=emptyGeoJson;clearPoiMarkers();updateBoundary();if(currentOrigin)status.textContent=`Zoekstraal ingesteld op ${searchRadiusKm} km. Tik op ‘Zoek voorzieningen’ om opnieuw te zoeken.`});
 async function findWaterPoints(longitude,latitude){
  const requestedRadiusKm=searchRadiusKm;
  waterRequest?.controller.abort();
- waterPoints=emptyGeoJson;trailFeatures=emptyGeoJson;const source=map.getSource("osm-water");if(source)source.setData(waterPoints);setTrailSourceData(map,[]);
+ waterPoints=emptyGeoJson;clearPoiMarkers();
  const request={controller:new AbortController()};waterRequest=request;
-  let waterOutcome="voorzieningen zoeken…",trailOutcome="wandelpaden/routes en natuur/water zoeken (maximaal circa 50 seconden)…";
- const renderStatus=()=>{if(request===waterRequest)status.textContent=`${waterOutcome} ${trailOutcome}`};renderStatus();
+  let waterOutcome="voorzieningen zoeken…";
+ const renderStatus=()=>{if(request===waterRequest)status.textContent=waterOutcome};renderStatus();
  const describeError=error=>error.kind==="http"?`HTTP ${error.detail} bij ${error.endpoint}`:error.kind==="timeout"?`timeout bij ${error.endpoint}`:error.kind==="json"?`ongeldige JSON van ${error.endpoint}`:error.kind==="cancelled"?"geannuleerd":`netwerk/CORS-fout bij ${error.endpoint}`;
  const waterTask=(async()=>{
   try{
@@ -66,29 +68,13 @@ async function findWaterPoints(longitude,latitude){
     if(!Number.isFinite(lon)||!Number.isFinite(lat)||!isInsideSearchArea(longitude,latitude,lon,lat,requestedRadiusKm))return [];
     const feature=toVaskorFeature(element);if(feature)feature.properties.gratisRelation=gratisRelationForOsmElement(element);return feature?[feature]:[];
    });
-   waterPoints={type:"FeatureCollection",features};map.getSource("osm-water")?.setData(waterPoints);
+   waterPoints={type:"FeatureCollection",features};renderPoiMarkers();
    waterOutcome=`${features.length} voorzieningen gevonden.`;
   }catch(error){if(request!==waterRequest||error.kind==="cancelled")return;waterOutcome=`Voorzieningen mislukt: ${describeError(error)}.`}
   renderStatus();
  })();
- const trailTask=(async()=>{
-  const outcomes=[];
-  const searches=[["Wandelpaden/routes",overpassTrailQuery],["Natuur/water",overpassNatureQuery]];
-  await Promise.all(searches.map(async([label,queryBuilder])=>{
-   try{
-    const {data}=await fetchOverpass(queryBuilder(longitude,latitude,requestedRadiusKm),{endpoints:overpassEndpoints,signal:request.controller.signal,timeoutMs:25000});
-    if(request!==waterRequest)return;
-    const features=filterTrailFeatures(toTrailFeatures(data.elements||[]),longitude,latitude,requestedRadiusKm);
-    const merged=new Map([...trailFeatures.features,...features].map(feature=>[feature.properties.osmSourceId,feature]));
-    trailFeatures={type:"FeatureCollection",features:[...merged.values()]};setTrailSourceData(map,trailFeatures.features);
-    outcomes.push(`${label}: ${features.length} kandidaten`);
-   }catch(error){if(request!==waterRequest||error.kind==="cancelled")return;outcomes.push(`${label} mislukt (${describeError(error)})`)}
-   trailOutcome=outcomes.join(" · ");renderStatus();
-  }));
-  if(request===waterRequest){const routeLinkCount=countRouteMemberLinks(trailFeatures.features);trailOutcome+=`; totaal ${trailFeatures.features.length} kandidaten, ${routeLinkCount} onbevestigde OSM-routekoppelingen.`;renderStatus()}
- })();
  currentOrigin=[longitude,latitude];updateBoundary();
- await Promise.all([waterTask,trailTask]);
+ await waterTask;
  if(request===waterRequest){waterRequest=null;searchButton.disabled=false}
 }
 function showOsmPopup(feature,ml){
@@ -119,35 +105,20 @@ function showOsmPopup(feature,ml){
  });content.append(capture);
  new ml.Popup({maxWidth:"none"}).setLngLat(feature.geometry.coordinates).setDOMContent(content).addTo(map);
 }
-function showTrailPopup(feature,ml){
- const props=feature.properties,tags=props.tags||{},content=document.createElement("div");content.className="osm-popup";
- const title=document.createElement("h2");title.textContent=tags.name||tags["name:en"]||({trail:"Wandelpad",hiking_route:"Wandelroute",nature_area:"Natuurgebied",picnic:"Picknickplek",beach:"Strand",viewpoint:"Uitzichtpunt",built_up:"Bebouwde omgeving"}[props.category]||"OSM-object");content.append(title);
- const note=document.createElement("p");note.textContent=`${props.uncertainty} · OpenStreetMap ${props.osmType} ${props.osmId} · bronidentiteit ${props.osmSourceId}`;content.append(note);
- const relations=deriveTrailRelations(trailFeatures.features).filter(relation=>relation.from===props.osmSourceId||relation.to===props.osmSourceId);
- const relationList=document.createElement("ul");(relations.length?relations:[{predicate:"Geen afgeleide relaties binnen de zoekresultaten"}]).forEach(relation=>{const item=document.createElement("li");item.textContent=relation.kind==="osm_member"?`${relation.predicate} · ${relation.confidence}`:relation.distanceMeters!==undefined?`${relation.predicate} · ${relation.distanceMeters} m · kandidaat, ${relation.confidence}`:relation.predicate;relationList.append(item)});content.append(relationList);
- const list=document.createElement("dl");Object.entries(tags).sort(([a],[b])=>a.localeCompare(b)).forEach(([key,value])=>{const term=document.createElement("dt"),description=document.createElement("dd");term.textContent=key;description.textContent=value;list.append(term,description)});content.append(list);
- const link=document.createElement("a");link.href=`https://www.openstreetmap.org/${encodeURIComponent(props.osmType)}/${props.osmId}`;link.target="_blank";link.rel="noopener noreferrer";link.textContent="Bekijk bronobject";content.append(link);
-  const point=feature.geometry.type==="Point"?feature.geometry.coordinates:feature.geometry.type==="Polygon"?feature.geometry.coordinates[0][Math.floor(feature.geometry.coordinates[0].length/2)]:feature.geometry.type==="MultiLineString"?feature.geometry.coordinates[0][Math.floor(feature.geometry.coordinates[0].length/2)]:feature.geometry.coordinates[Math.floor(feature.geometry.coordinates.length/2)]||[0,0];new ml.Popup({maxWidth:"none"}).setLngLat(point).setDOMContent(content).addTo(map);
-}
 exportButton.addEventListener("click",()=>{
  const blob=new Blob([JSON.stringify(pilotData,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download=`vaskor-field-pilot-${new Date().toISOString().slice(0,10)}.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
  if(!pilotData.knowledge_objects.length)status.textContent="Nog geen veldwaarnemingen. Tik een OSM-kandidaat aan en bevestig alleen wat je ter plaatse zelf ziet.";
 });
 try{
- const ml=await import("https://unpkg.com/maplibre-gl@6.16.0/dist/maplibre-gl.mjs");
+ ml=await import("https://unpkg.com/maplibre-gl@6.16.0/dist/maplibre-gl.mjs");
  map=new ml.Map({container:"map",style:"https://tiles.openfreemap.org/styles/positron",center:[5.3,52.1],zoom:7,minZoom:3,maxZoom:18,cooperativeGestures:true});
- let marker,searchArea=emptyGeoJson;
+  let marker,searchArea=emptyGeoJson;
  map.once("load",()=>{
+  applyVaskorMapStyle(map);
   map.addSource("search-boundary",{type:"geojson",data:searchArea});
   map.addLayer({id:"search-boundary-fill",type:"fill",source:"search-boundary",paint:{"fill-color":"#2c8a72","fill-opacity":0.08}});
   map.addLayer({id:"search-boundary-line",type:"line",source:"search-boundary",paint:{"line-color":"#176452","line-width":2,"line-dasharray":[2,1.5]}});
-  map.addSource("osm-water",{type:"geojson",data:waterPoints});
-  map.addLayer({id:"osm-water-points",type:"circle",source:"osm-water",paint:{"circle-radius":["interpolate",["linear"],["zoom"],5,4,12,7],"circle-color":["match",["get","category"],"toilet","#7865b2","shower","#3986a6","swimming","#358f9a","#d28735"],"circle-stroke-color":"#fff","circle-stroke-width":1.5}});
-  map.addSource("osm-trails",{type:"geojson",data:trailFeatures});
-  addTrailLayers(map,feature=>showTrailPopup(feature,ml));
-  map.on("click","osm-water-points",event=>{const feature=event.features?.[0];if(feature)showOsmPopup(feature,ml)});
-  map.on("mouseenter","osm-water-points",()=>{map.getCanvas().style.cursor="pointer"});map.on("mouseleave","osm-water-points",()=>{map.getCanvas().style.cursor=""});
-  status.textContent="Kaart klaar. Zoek met je actuele GPS-locatie naar voorzieningen, wandelpaden, wandelroutes en natuurgebieden.";
+  status.textContent="Kaart klaar. Zoek met je actuele GPS-locatie naar vaste OSM-voorzieningen.";
  });
  map.on("error",()=>{status.textContent="Kaartgegevens zijn niet volledig beschikbaar. Controleer je verbinding; je kunt de pagina later opnieuw proberen."});
  const updatePosition=({coords})=>{
@@ -203,4 +174,3 @@ try{
 </script>
 </body>
 </html>
-
