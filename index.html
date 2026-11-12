@@ -29,7 +29,7 @@ import {emptyPilotDataset,saveFieldObservation} from "./knowledge/pilot.mjs";
 import {DEFAULT_RADIUS_KM,isInsideSearchArea,overpassSearchQuery,overpassTrailQuery,searchBoundary,distanceMeters} from "./knowledge/search-area.mjs";
 import {categoryLabel,relationsForFeature,toVaskorFeature} from "./knowledge/osm-discovery.mjs";
 import {filterGratisOsmElements,gratisRelationForOsmElement} from "./knowledge/gratis-filter.mjs";
-import {addTrailLayers,deriveTrailRelations,filterTrailFeatures,setTrailSourceData,toTrailFeatures} from "./knowledge/osm-trails.mjs";
+import {addTrailLayers,countRouteMemberLinks,deriveTrailRelations,filterTrailFeatures,setTrailSourceData,toTrailFeatures} from "./knowledge/osm-trails.mjs";
 import {fetchOverpass} from "./knowledge/overpass-client.mjs";
 const status=document.getElementById("status"),button=document.getElementById("locate"),searchButton=document.getElementById("search-osm"),radiusSelect=document.getElementById("search-radius"),boundaryLabel=document.getElementById("search-boundary"),boundaryCopy=document.getElementById("search-boundary-copy"),exportButton=document.getElementById("export-data");
 document.querySelectorAll(".panel-toggle").forEach(toggle=>toggle.addEventListener("click",()=>{
@@ -77,8 +77,8 @@ async function findWaterPoints(longitude,latitude){
    if(request!==waterRequest)return;
    const features=filterTrailFeatures(toTrailFeatures(data.elements||[]),longitude,latitude,requestedRadiusKm);
    trailFeatures={type:"FeatureCollection",features};setTrailSourceData(map,features);
-   const relationCount=deriveTrailRelations(features).length;
-   trailOutcome=`${features.length} wandel-/natuurkandidaten gevonden; ${relationCount} relaties zijn onbevestigd.`;
+   const routeLinkCount=countRouteMemberLinks(features);
+   trailOutcome=`${features.length} wandel-/natuurkandidaten gevonden; ${routeLinkCount} OSM-routekoppelingen zijn onbevestigd.`;
   }catch(error){if(request!==waterRequest||error.kind==="cancelled")return;trailOutcome=`Wandelpaden/natuur mislukt: ${describeError(error)}.`}
   renderStatus();
  })();
