@@ -25,7 +25,7 @@ The goal is not to create a large dataset. The goal is to test whether VASKOR ca
 
 ## Map start screen
 
-The map is a static page in `index.html`; it adds no framework or build step. MapLibre GL JS is loaded from the UNPKG CDN (version 6.16.0). The map style and vector tiles are served by the public OpenFreeMap service, using its Positron style. The browser requests location only after the visitor presses **Mijn locatie**, explicitly searches, or records a field observation. A search asks for a fresh GPS fix and uses that exact fix as its origin; it does not use the map center or an estimated location.
+The map is a static page in `index.html`; it adds no framework or build step. MapLibre GL JS is loaded from the UNPKG CDN (version 6.16.0). The map style and vector tiles are served by the public OpenFreeMap service, using its Positron style. Location tracking starts only when the visitor turns on **Locatie**. **Zoek voorzieningen** requests a fresh GPS fix only after the visitor chooses to search.
 
 These external services are required for the map. The public OpenFreeMap service is provided without an uptime guarantee, so the map may be unavailable or change; the page displays a small status message if the map cannot load. Browser location also depends on permission, device settings, and a secure origin (HTTPS, or localhost).
 
@@ -58,28 +58,12 @@ node --test tests/validator.test.mjs
 
 The fixture contains synthetic test data only. The existing `knowledge/objects`, `knowledge/types`, and `knowledge/relations` files are retained as the legacy knowledge layer and have not been silently migrated.
 
-### Phone field test
-
-The live map searches OpenStreetMap for fixed drinking-water points, toilets, showers and mapped swimming facilities. Each result is placed as a point marker at its OSM location or mapped center. The circular search radius defaults to 20 km and can be expanded to 50 km. OpenStreetMap is queried with a bounding box for efficiency; VASKOR filters returned candidates against the exact circle. Tap a candidate only when you are physically there and can confirm that the facility is visible. The phone records its current GPS position and accuracy as support for that observation. This records presence at that moment; it does not establish drinking-water quality, free access, opening hours, or continued availability.
-
-Each map candidate is presented with a VASKOR identity separate from its OpenStreetMap source identity. Selecting an object shows saved, claim-supported relations separately from inferred nearby candidates (currently within 500 m). Proximity is a discovery hint, not a confirmed relationship.
-
-Each phone keeps its test records in that browser only. Use **Exporteer veldtest** to download a v1.0 JSON dataset from each device. The page does not upload observations. Validate an exported file on a computer with:
-
-```sh
-node knowledge/validator.mjs path/to/vaskor-field-pilot.json
-```
-
-The pilot data stays outside the repository unless it is deliberately reviewed and added later. Do not treat raw OSM candidates as confirmed real-world objects; the explicit field observation creates the object and the supported `represents` relation.
-
 ### Manual map regression checks
 
-- Open the page without granting location access. Confirm no location prompt or OSM search occurs on load.
-- Pan the map away from your device. Tap **Mijn locatie** and confirm the map follows the GPS position; tap **Stop volgen** and confirm updates stop without navigation.
-- Collapse and reopen the status and search-area panels using their arrow icons.
+- Open the page without granting location access. Confirm no location prompt or search occurs on load.
+- Confirm **Locatie** stays off until tapped, then starts tracking and switches off again when tapped a second time.
+- Drag the map with one finger and pinch with two; check that controls remain tappable and the location marker stays at its measured position while the map moves.
 - Tap **Zoek voorzieningen** and confirm the browser asks for a fresh location only then; the search recenters on that fix.
 - Confirm the displayed circle is 20 km by default; choose 50 km and verify the boundary and subsequent results use the expanded radius. Deny location or disable GPS and confirm no search runs.
-- If the first Overpass server is unavailable or slow while the second succeeds, confirm there is no intermediate failure message and only the result count appears. Confirm an error appears only when both servers fail.
-- Confirm fixed facility markers appear only after the explicit search, and that the result status calls them unverified OSM candidates.
-- Select a candidate and confirm the VASKOR and OSM identifiers are distinct; saved relations and inferred nearby candidates have separate headings and the latter are marked unconfirmed.
-- In browser developer tools, block local storage writes and try to record a field observation. Confirm the export count stays unchanged; restore storage and retry, then confirm exactly one observation is exported.
+- Confirm fixed facility markers appear only after the explicit search. The only map-source notice is the small required attribution at the bottom right.
+- Confirm the heading wedge appears only when the device provides compass or GPS heading data; otherwise the marker remains a blue dot.

@@ -16,7 +16,7 @@ export function createPoiMarkerElement(feature, documentImpl = document) {
   const marker = documentImpl.createElement('button');
   marker.type = 'button';
   marker.className = 'poi-marker';
-  marker.setAttribute('aria-label', `${label} op OpenStreetMap`);
+  marker.setAttribute('aria-label', label);
   marker.innerHTML = markerIconSvg(category);
   return marker;
 }
