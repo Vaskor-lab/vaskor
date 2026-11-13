@@ -47,3 +47,24 @@ test('Positron receives the VASKOR palette while retaining its layer structure',
   assert.ok(changes.some(([id, property, value]) => id === 'highway_motorway_inner' && property === 'line-color' && value === '#E5C976'));
   assert.ok(changes.some(([id, property, value]) => id === 'place_label' && property === 'text-color' && value === '#53636C'));
 });
+
+import { readFile } from 'node:fs/promises';
+
+test('POI marker symbols resolve to filled icons in the Google sprite and manifest', async () => {
+  const manifestUrl = new URL('../assets/map-icons/google-material-symbols-rounded/manifest.json', import.meta.url);
+  const spriteUrl = new URL('../assets/map-icons/google-material-symbols-rounded/sprite.svg', import.meta.url);
+  const manifest = JSON.parse(await readFile(manifestUrl, 'utf8'));
+  const sprite = await readFile(spriteUrl, 'utf8');
+  const spriteIds = new Set([...sprite.matchAll(/<symbol id="([^"]+)"/g)].map(match => match[1]));
+  const used = { water: 'water_drop', toilet: 'wc', shower: 'shower', swimming: 'waves' };
+
+  assert.equal(spriteIds.size, 176);
+  for (const [category, symbol] of Object.entries(used)) {
+    const entry = manifest.icons.find(icon => icon.name === symbol);
+    assert.ok(entry, `manifest contains ${symbol}`);
+    assert.equal(entry.asset, `sprite.svg#${symbol}`);
+    assert.ok(spriteIds.has(symbol), `sprite contains ${symbol}`);
+    assert.match(sprite, new RegExp(`<symbol id="${symbol}" viewBox="0 -960 960 960"><path[^>]+fill="currentColor"`));
+    assert.match(markerIconSvg(category), new RegExp(`<use href="./assets/map-icons/google-material-symbols-rounded/sprite\\.svg#${symbol}"`));
+  }
+});
