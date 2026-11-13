@@ -14,11 +14,9 @@ const acceptedFeatures = element => filterGratisOsmElements([element]).flatMap(c
 
 test('catalogue has seven sections and only object tags with an independent fixed identity', () => {
   assert.deepEqual(OSM_CATALOGUE.map(section => section.id), ['orientation', 'shelter', 'public', 'transport', 'nature', 'sport', 'safety']);
-  assert.equal(allObjects.length, 66);
-  assert.equal(new Set(allObjects.map(object => object.id)).size, 66);
-  for (const excluded of [
-    { 'addr:housenumber': '12', 'addr:street': 'Main Street' },
-  ]) assert.equal(catalogObjectForTags(excluded), null, 'an address annotates an addressable object; it is not a standalone opportunity');
+  assert.equal(allObjects.length, 67);
+  assert.equal(new Set(allObjects.map(object => object.id)).size, 67);
+  assert.equal(catalogObjectForTags({ 'addr:housenumber': '12', 'addr:street': 'Main Street' }).id, 'address');
   assert.equal(catalogObjectForTags({ sport: 'climbing' }).id, 'climbing', 'OSM maps climbing sites on their physical feature');
   assert.equal(catalogObjectForTags({ playground: 'slide' }).id, 'playground_equipment', 'OSM maps individual play devices as separate features');
   assert.equal(catalogObjectForTags({ leisure: 'pitch' }).id, 'pitch', 'a pitch is its own marked sport area');
@@ -73,7 +71,7 @@ test('Overpass query requests only node records with their own coordinates', () 
   const query = overpassSearchQuery(4, 52);
   assert.match(query, /\bout body;/);
   assert.doesNotMatch(query, /\bnwr\b|\bout center;/);
-  assert.doesNotMatch(query, /addr:housenumber|addr:street/);
+  assert.match(query, /node\["addr:housenumber"\]\["addr:street"\]/);
   for (const object of allObjects) {
     for (const [key, value] of Object.entries(object.tags)) {
       if (value === '*') assert.ok(query.includes(`["${key}"]`), `${object.id} selector`);

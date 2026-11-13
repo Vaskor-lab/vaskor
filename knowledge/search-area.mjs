@@ -55,6 +55,7 @@ export function overpassSearchQuery(longitude, latitude, radiusKm = DEFAULT_RADI
   const box = `(${south},${west},${north},${east})`;
   const selectors = [
     ...['village', 'town', 'city'].map(value => `node["place"="${value}"]${box}`),
+    `node["addr:housenumber"]["addr:street"]${box}`,
     ...[['natural','peak'],['tourism','viewpoint'],['tourism','information'],['information','board'],['information','map'],['information','guidepost'],['information','route_marker'],
       ['tourism','caravan_site'],['tourism','camp_pitch'],['tourism','alpine_hut'],['tourism','wilderness_hut'],
       ['amenity','drinking_water'],['amenity','water_point'],['amenity','toilets'],['amenity','shower'],['amenity','sanitary_dump_station'],

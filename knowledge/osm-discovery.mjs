@@ -1,6 +1,7 @@
 export const OSM_CATALOGUE = [
   { id: 'orientation', label: 'Oriëntatie en locatie', objects: [
     ['place', 'Plaats', { place: ['village', 'town', 'city'] }],
+    ['address', 'Adres', { 'addr:housenumber': '*', 'addr:street': '*' }],
     ['peak', 'Bergtop', { natural: 'peak' }],
     ['viewpoint', 'Uitzichtpunt', { tourism: 'viewpoint' }],
     ['information_board', 'Informatiebord', { information: 'board' }],
