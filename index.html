@@ -74,7 +74,7 @@ async function findWaterPoints(longitude,latitude){
 function showOsmPopup(feature,ml){
  const props=feature.properties,tags=props.tags||{},content=document.createElement("div");content.className="osm-popup";
  const category=props.category||"water",label=categoryLabel(category);
- const title=document.createElement("h2");title.textContent=tags.name||tags["name:en"]||label;content.append(title);
+ const title=document.createElement("h2");title.textContent=tags.name||tags["name:en"]||props.catalogLabel||label;content.append(title);
  const list=document.createElement("dl");Object.entries(tags).sort(([a],[b])=>a.localeCompare(b)).forEach(([key,value])=>{const term=document.createElement("dt"),description=document.createElement("dd");term.textContent=key;description.textContent=value;list.append(term,description)});content.append(list);
  new ml.Popup({maxWidth:"none"}).setLngLat(feature.geometry.coordinates).setDOMContent(content).addTo(map);
 }
