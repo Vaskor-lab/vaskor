@@ -1,7 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import { createPoiMarkerElement, markerIconSvg } from '../knowledge/map-markers.mjs';
 import { applyVaskorMapStyle } from '../knowledge/map-style.mjs';
+
+const iconRoot = new URL('../assets/map-icons/google-material-symbols-rounded/', import.meta.url);
 
 test('water and toilet marker icons share the white pin and VASKOR orange', () => {
   for (const category of ['water', 'toilet']) {
@@ -60,5 +63,24 @@ test('POI markers include the four inline Google Material Symbols paths', () => 
     const svg = markerIconSvg(category);
     assert.ok(svg.includes(`<path fill="#fff" d="${path}"/>`), `${category} symbol is inline`);
     assert.doesNotMatch(svg, /<use\\b/);
+  }
+});
+
+test('all seven category markers use inline paths from the approved symbol manifest and sprite', async () => {
+  const manifest = JSON.parse(await readFile(new URL('manifest.json', iconRoot), 'utf8'));
+  const sprite = await readFile(new URL('sprite.svg', iconRoot), 'utf8');
+  const manifestNames = new Set(manifest.icons.map(icon => icon.name));
+  const symbols = {
+    orientation: 'travel_explore', shelter: 'cabin', public: 'water_drop',
+    transport: 'directions_bus', nature: 'landscape', sport: 'sports_soccer', safety: 'health_and_safety'
+  };
+  for (const [category, symbol] of Object.entries(symbols)) {
+    assert.ok(manifestNames.has(symbol), `${symbol} is in the approved manifest`);
+    const escaped = symbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const match = sprite.match(new RegExp(`<symbol id="${escaped}" viewBox="[^"]+"><path fill="currentColor" d="([^"]+)"/></symbol>`));
+    assert.ok(match, `${symbol} path is in the approved sprite`);
+    const svg = markerIconSvg(category);
+    assert.ok(svg.includes(`<path fill="#fff" d="${match[1]}"/>`), `${category} embeds its exact sprite path`);
+    assert.doesNotMatch(svg, /<text\b|font-family|font-variation-settings|<use\b/);
   }
 });

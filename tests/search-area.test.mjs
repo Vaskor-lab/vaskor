@@ -32,8 +32,8 @@ test('OSM candidates become separate VASKOR identities and known categories', ()
   assert.equal(feature.properties.category, 'shower');
   assert.equal(classifyOsmTags({ natural: 'beach' }), null);
   const way = toVaskorFeature({ type: 'way', id: 124, center: { lon: 2.1, lat: 42.1 }, tags: { amenity: 'toilets' } });
-  assert.equal(way.geometry.type, 'Point');
-  assert.deepEqual(way.geometry.coordinates, [2.1, 42.1]);
+  assert.equal(way, null);
+  assert.equal(toVaskorFeature({ type: 'relation', id: 126, center: { lon: 2.1, lat: 42.1 }, tags: { amenity: 'toilets' } }), null);
   assert.equal(toVaskorFeature({ type: 'way', id: 125, geometry: [{ lon: 2, lat: 42 }], tags: { amenity: 'toilets' } }), null);
   assert.equal(toVaskorFeature({ type: 'node', id: 1, lon: 0, lat: 0, tags: { amenity: 'bench' } }), null);
 });

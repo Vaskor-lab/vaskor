@@ -1,7 +1,6 @@
 export const OSM_CATALOGUE = [
   { id: 'orientation', label: 'Oriëntatie en locatie', objects: [
     ['place', 'Plaats', { place: ['village', 'town', 'city'] }],
-    ['address', 'Adres', { 'addr:housenumber': '*', 'addr:street': '*' }],
     ['peak', 'Bergtop', { natural: 'peak' }],
     ['viewpoint', 'Uitzichtpunt', { tourism: 'viewpoint' }],
     ['information_board', 'Informatiebord', { information: 'board' }],
@@ -102,10 +101,13 @@ export function catalogObjectForTags(tags = {}) {
 
 export function toVaskorFeature(element) {
   const tags = element.tags || {};
-  const longitude = element.lon ?? element.center?.lon;
-  const latitude = element.lat ?? element.center?.lat;
+  // Only a node's own coordinates are a fixed point. Overpass centers and
+  // way/relation geometries are derived representations, not point locations.
+  if (element.type !== 'node') return null;
+  const longitude = element.lon;
+  const latitude = element.lat;
   const object = catalogObjectForTags(tags);
-  if (!object || !Number.isFinite(longitude) || !Number.isFinite(latitude)) return null;
+  if (!object || !Number.isFinite(longitude) || !Number.isFinite(latitude) || longitude < -180 || longitude > 180 || latitude < -90 || latitude > 90) return null;
   const osmType = element.type;
   const osmId = element.id;
   return {

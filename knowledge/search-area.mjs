@@ -54,8 +54,7 @@ export function overpassSearchQuery(longitude, latitude, radiusKm = DEFAULT_RADI
   const { south, west, north, east } = searchBounds(longitude, latitude, radiusKm);
   const box = `(${south},${west},${north},${east})`;
   const selectors = [
-    ...['village', 'town', 'city'].map(value => `nwr["place"="${value}"]${box}`),
-    `nwr["addr:housenumber"]["addr:street"]${box}`,
+    ...['village', 'town', 'city'].map(value => `node["place"="${value}"]${box}`),
     ...[['natural','peak'],['tourism','viewpoint'],['tourism','information'],['information','board'],['information','map'],['information','guidepost'],['information','route_marker'],
       ['tourism','caravan_site'],['tourism','camp_pitch'],['tourism','alpine_hut'],['tourism','wilderness_hut'],
       ['amenity','drinking_water'],['amenity','water_point'],['amenity','toilets'],['amenity','shower'],['amenity','sanitary_dump_station'],
@@ -64,11 +63,11 @@ export function overpassSearchQuery(longitude, latitude, radiusKm = DEFAULT_RADI
       ['natural','saddle'],['natural','cave_entrance'],['natural','cliff'],['natural','spring'],['waterway','waterfall'],['leisure','bathing_place'],['leisure','swimming_area'],
       ['leisure','pitch'],['leisure','playground'],['leisure','track'],['leisure','skate_park'],['leisure','fitness_station'],['sport','climbing'],
       ['aeroway','aerodrome'],['aeroway','helipad'],['emergency','phone'],['emergency','defibrillator'],['emergency','lifeguard'],['amenity','fire_station'],['amenity','hospital'],['amenity','police'],['emergency','water_rescue'],['emergency','assembly_point'],['highway','emergency_access_point']]
-      .map(([key,value]) => `nwr["${key}"="${value}"]${box}`),
-    ...['basic_hut','lean_to','weather_shelter'].map(value => `nwr["amenity"="shelter"]["shelter_type"="${value}"]${box}`),
-    ...['tennis','padel','boules','soccer','basketball','volleyball','athletics'].map(value => `nwr["leisure"="pitch"]["sport"="${value}"]${box}`),
-    `nwr["playground"]${box}`,
-    `nwr["leisure"="track"]["cycling"="pump_track"]${box}`
+      .map(([key,value]) => `node["${key}"="${value}"]${box}`),
+    ...['basic_hut','lean_to','weather_shelter'].map(value => `node["amenity"="shelter"]["shelter_type"="${value}"]${box}`),
+    ...['tennis','padel','boules','soccer','basketball','volleyball','athletics'].map(value => `node["leisure"="pitch"]["sport"="${value}"]${box}`),
+    `node["playground"]${box}`,
+    `node["leisure"="track"]["cycling"="pump_track"]${box}`
   ];
-  return `[out:json][timeout:60];(${selectors.join(';')};);out center;`;
+  return `[out:json][timeout:60];(${selectors.join(';')};);out body;`;
 }
