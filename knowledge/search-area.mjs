@@ -52,5 +52,23 @@ export function isInsideSearchArea(originLongitude, originLatitude, longitude, l
 
 export function overpassSearchQuery(longitude, latitude, radiusKm = DEFAULT_RADIUS_KM) {
   const { south, west, north, east } = searchBounds(longitude, latitude, radiusKm);
-  return `[out:json][timeout:45];(nwr["amenity"="drinking_water"](${south},${west},${north},${east});nwr["amenity"="water_point"](${south},${west},${north},${east});nwr["amenity"="toilets"](${south},${west},${north},${east});nwr["amenity"="shower"](${south},${west},${north},${east});nwr["leisure"="swimming_area"](${south},${west},${north},${east});nwr["leisure"="swimming_pool"](${south},${west},${north},${east}););out center;`;
+  const box = `(${south},${west},${north},${east})`;
+  const selectors = [
+    ...['village', 'town', 'city'].map(value => `nwr["place"="${value}"]${box}`),
+    `nwr["addr:housenumber"]["addr:street"]${box}`,
+    ...[['natural','peak'],['tourism','viewpoint'],['tourism','information'],['information','board'],['information','map'],['information','guidepost'],['information','route_marker'],
+      ['tourism','caravan_site'],['tourism','camp_pitch'],['tourism','alpine_hut'],['tourism','wilderness_hut'],
+      ['amenity','drinking_water'],['amenity','water_point'],['amenity','toilets'],['amenity','shower'],['amenity','sanitary_dump_station'],
+      ['tourism','picnic_site'],['leisure','picnic_table'],['leisure','firepit'],['amenity','waste_basket'],['amenity','first_aid'],
+      ['amenity','parking'],['amenity','bicycle_repair_station'],['amenity','fuel'],['amenity','charging_station'],['highway','bus_stop'],['public_transport','platform'],['amenity','ferry_terminal'],['leisure','marina'],['leisure','slipway'],
+      ['natural','saddle'],['natural','cave_entrance'],['natural','cliff'],['natural','spring'],['waterway','waterfall'],['leisure','bathing_place'],['leisure','swimming_area'],
+      ['leisure','pitch'],['leisure','playground'],['leisure','track'],['leisure','skate_park'],['leisure','fitness_station'],['sport','climbing'],
+      ['aeroway','aerodrome'],['aeroway','helipad'],['emergency','phone'],['emergency','defibrillator'],['emergency','lifeguard'],['amenity','fire_station'],['amenity','hospital'],['amenity','police'],['emergency','water_rescue'],['emergency','assembly_point'],['highway','emergency_access_point']]
+      .map(([key,value]) => `nwr["${key}"="${value}"]${box}`),
+    ...['basic_hut','lean_to','weather_shelter'].map(value => `nwr["amenity"="shelter"]["shelter_type"="${value}"]${box}`),
+    ...['tennis','padel','boules','soccer','basketball','volleyball','athletics'].map(value => `nwr["leisure"="pitch"]["sport"="${value}"]${box}`),
+    `nwr["playground"]${box}`,
+    `nwr["leisure"="track"]["cycling"="pump_track"]${box}`
+  ];
+  return `[out:json][timeout:60];(${selectors.join(';')};);out center;`;
 }
