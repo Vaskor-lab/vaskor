@@ -1,0 +1,1065 @@
+{
+  "source": "google/material-design-icons",
+  "upstreamCommit": "10ecc14790612ca8fd164e3f4ffe9c16fc50d5b7",
+  "variant": "Material Symbols Rounded",
+  "fill": 1,
+  "opticalSize": 24,
+  "icons": [
+    {
+      "name": "bathroom",
+      "category": "sanitair-hygiene",
+      "label": "bathroom",
+      "asset": "sprite.svg#bathroom"
+    },
+    {
+      "name": "wc",
+      "category": "sanitair-hygiene",
+      "label": "wc",
+      "asset": "sprite.svg#wc"
+    },
+    {
+      "name": "shower",
+      "category": "sanitair-hygiene",
+      "label": "shower",
+      "asset": "sprite.svg#shower"
+    },
+    {
+      "name": "wash",
+      "category": "sanitair-hygiene",
+      "label": "wash",
+      "asset": "sprite.svg#wash"
+    },
+    {
+      "name": "soap",
+      "category": "sanitair-hygiene",
+      "label": "soap",
+      "asset": "sprite.svg#soap"
+    },
+    {
+      "name": "cleaning_services",
+      "category": "sanitair-hygiene",
+      "label": "cleaning services",
+      "asset": "sprite.svg#cleaning_services"
+    },
+    {
+      "name": "sanitizer",
+      "category": "sanitair-hygiene",
+      "label": "sanitizer",
+      "asset": "sprite.svg#sanitizer"
+    },
+    {
+      "name": "accessible",
+      "category": "sanitair-hygiene",
+      "label": "accessible",
+      "asset": "sprite.svg#accessible"
+    },
+    {
+      "name": "water_drop",
+      "category": "drinkwater-voedsel",
+      "label": "water drop",
+      "asset": "sprite.svg#water_drop"
+    },
+    {
+      "name": "water",
+      "category": "drinkwater-voedsel",
+      "label": "water",
+      "asset": "sprite.svg#water"
+    },
+    {
+      "name": "local_drink",
+      "category": "drinkwater-voedsel",
+      "label": "local drink",
+      "asset": "sprite.svg#local_drink"
+    },
+    {
+      "name": "restaurant",
+      "category": "drinkwater-voedsel",
+      "label": "restaurant",
+      "asset": "sprite.svg#restaurant"
+    },
+    {
+      "name": "lunch_dining",
+      "category": "drinkwater-voedsel",
+      "label": "lunch dining",
+      "asset": "sprite.svg#lunch_dining"
+    },
+    {
+      "name": "bakery_dining",
+      "category": "drinkwater-voedsel",
+      "label": "bakery dining",
+      "asset": "sprite.svg#bakery_dining"
+    },
+    {
+      "name": "grocery",
+      "category": "drinkwater-voedsel",
+      "label": "grocery",
+      "asset": "sprite.svg#grocery"
+    },
+    {
+      "name": "nutrition",
+      "category": "drinkwater-voedsel",
+      "label": "nutrition",
+      "asset": "sprite.svg#nutrition"
+    },
+    {
+      "name": "coffee",
+      "category": "drinkwater-voedsel",
+      "label": "coffee",
+      "asset": "sprite.svg#coffee"
+    },
+    {
+      "name": "kitchen",
+      "category": "drinkwater-voedsel",
+      "label": "kitchen",
+      "asset": "sprite.svg#kitchen"
+    },
+    {
+      "name": "cabin",
+      "category": "onderdak-kamperen",
+      "label": "cabin",
+      "asset": "sprite.svg#cabin"
+    },
+    {
+      "name": "camping",
+      "category": "onderdak-kamperen",
+      "label": "camping",
+      "asset": "sprite.svg#camping"
+    },
+    {
+      "name": "hotel",
+      "category": "onderdak-kamperen",
+      "label": "hotel",
+      "asset": "sprite.svg#hotel"
+    },
+    {
+      "name": "bed",
+      "category": "onderdak-kamperen",
+      "label": "bed",
+      "asset": "sprite.svg#bed"
+    },
+    {
+      "name": "roofing",
+      "category": "onderdak-kamperen",
+      "label": "roofing",
+      "asset": "sprite.svg#roofing"
+    },
+    {
+      "name": "house",
+      "category": "onderdak-kamperen",
+      "label": "house",
+      "asset": "sprite.svg#house"
+    },
+    {
+      "name": "holiday_village",
+      "category": "onderdak-kamperen",
+      "label": "holiday village",
+      "asset": "sprite.svg#holiday_village"
+    },
+    {
+      "name": "directions_walk",
+      "category": "vervoer-navigatie",
+      "label": "directions walk",
+      "asset": "sprite.svg#directions_walk"
+    },
+    {
+      "name": "directions_bike",
+      "category": "vervoer-navigatie",
+      "label": "directions bike",
+      "asset": "sprite.svg#directions_bike"
+    },
+    {
+      "name": "directions_bus",
+      "category": "vervoer-navigatie",
+      "label": "directions bus",
+      "asset": "sprite.svg#directions_bus"
+    },
+    {
+      "name": "directions_car",
+      "category": "vervoer-navigatie",
+      "label": "directions car",
+      "asset": "sprite.svg#directions_car"
+    },
+    {
+      "name": "train",
+      "category": "vervoer-navigatie",
+      "label": "train",
+      "asset": "sprite.svg#train"
+    },
+    {
+      "name": "tram",
+      "category": "vervoer-navigatie",
+      "label": "tram",
+      "asset": "sprite.svg#tram"
+    },
+    {
+      "name": "subway",
+      "category": "vervoer-navigatie",
+      "label": "subway",
+      "asset": "sprite.svg#subway"
+    },
+    {
+      "name": "flight",
+      "category": "vervoer-navigatie",
+      "label": "flight",
+      "asset": "sprite.svg#flight"
+    },
+    {
+      "name": "local_taxi",
+      "category": "vervoer-navigatie",
+      "label": "local taxi",
+      "asset": "sprite.svg#local_taxi"
+    },
+    {
+      "name": "navigation",
+      "category": "vervoer-navigatie",
+      "label": "navigation",
+      "asset": "sprite.svg#navigation"
+    },
+    {
+      "name": "near_me",
+      "category": "vervoer-navigatie",
+      "label": "near me",
+      "asset": "sprite.svg#near_me"
+    },
+    {
+      "name": "map",
+      "category": "vervoer-navigatie",
+      "label": "map",
+      "asset": "sprite.svg#map"
+    },
+    {
+      "name": "route",
+      "category": "vervoer-navigatie",
+      "label": "route",
+      "asset": "sprite.svg#route"
+    },
+    {
+      "name": "public",
+      "category": "openbare-voorzieningen",
+      "label": "public",
+      "asset": "sprite.svg#public"
+    },
+    {
+      "name": "park",
+      "category": "openbare-voorzieningen",
+      "label": "park",
+      "asset": "sprite.svg#park"
+    },
+    {
+      "name": "water_damage",
+      "category": "openbare-voorzieningen",
+      "label": "water damage",
+      "asset": "sprite.svg#water_damage"
+    },
+    {
+      "name": "local_parking",
+      "category": "openbare-voorzieningen",
+      "label": "local parking",
+      "asset": "sprite.svg#local_parking"
+    },
+    {
+      "name": "ev_station",
+      "category": "openbare-voorzieningen",
+      "label": "ev station",
+      "asset": "sprite.svg#ev_station"
+    },
+    {
+      "name": "charging_station",
+      "category": "openbare-voorzieningen",
+      "label": "charging station",
+      "asset": "sprite.svg#charging_station"
+    },
+    {
+      "name": "recycling",
+      "category": "openbare-voorzieningen",
+      "label": "recycling",
+      "asset": "sprite.svg#recycling"
+    },
+    {
+      "name": "info",
+      "category": "openbare-voorzieningen",
+      "label": "info",
+      "asset": "sprite.svg#info"
+    },
+    {
+      "name": "forest",
+      "category": "natuur-landschap",
+      "label": "forest",
+      "asset": "sprite.svg#forest"
+    },
+    {
+      "name": "landscape",
+      "category": "natuur-landschap",
+      "label": "landscape",
+      "asset": "sprite.svg#landscape"
+    },
+    {
+      "name": "waves",
+      "category": "natuur-landschap",
+      "label": "waves",
+      "asset": "sprite.svg#waves"
+    },
+    {
+      "name": "beach_access",
+      "category": "natuur-landschap",
+      "label": "beach access",
+      "asset": "sprite.svg#beach_access"
+    },
+    {
+      "name": "volcano",
+      "category": "natuur-landschap",
+      "label": "volcano",
+      "asset": "sprite.svg#volcano"
+    },
+    {
+      "name": "mountain_flag",
+      "category": "natuur-landschap",
+      "label": "mountain flag",
+      "asset": "sprite.svg#mountain_flag"
+    },
+    {
+      "name": "pets",
+      "category": "natuur-landschap",
+      "label": "pets",
+      "asset": "sprite.svg#pets"
+    },
+    {
+      "name": "pest_control_rodent",
+      "category": "natuur-landschap",
+      "label": "pest control rodent",
+      "asset": "sprite.svg#pest_control_rodent"
+    },
+    {
+      "name": "medical_services",
+      "category": "gezondheid-veiligheid",
+      "label": "medical services",
+      "asset": "sprite.svg#medical_services"
+    },
+    {
+      "name": "local_hospital",
+      "category": "gezondheid-veiligheid",
+      "label": "local hospital",
+      "asset": "sprite.svg#local_hospital"
+    },
+    {
+      "name": "vaccines",
+      "category": "gezondheid-veiligheid",
+      "label": "vaccines",
+      "asset": "sprite.svg#vaccines"
+    },
+    {
+      "name": "emergency",
+      "category": "gezondheid-veiligheid",
+      "label": "emergency",
+      "asset": "sprite.svg#emergency"
+    },
+    {
+      "name": "health_and_safety",
+      "category": "gezondheid-veiligheid",
+      "label": "health and safety",
+      "asset": "sprite.svg#health_and_safety"
+    },
+    {
+      "name": "warning",
+      "category": "gezondheid-veiligheid",
+      "label": "warning",
+      "asset": "sprite.svg#warning"
+    },
+    {
+      "name": "emergency_share",
+      "category": "gezondheid-veiligheid",
+      "label": "emergency share",
+      "asset": "sprite.svg#emergency_share"
+    },
+    {
+      "name": "fire_extinguisher",
+      "category": "gezondheid-veiligheid",
+      "label": "fire extinguisher",
+      "asset": "sprite.svg#fire_extinguisher"
+    },
+    {
+      "name": "shield",
+      "category": "gezondheid-veiligheid",
+      "label": "shield",
+      "asset": "sprite.svg#shield"
+    },
+    {
+      "name": "wifi",
+      "category": "communicatie-digitaal",
+      "label": "wifi",
+      "asset": "sprite.svg#wifi"
+    },
+    {
+      "name": "wifi_off",
+      "category": "communicatie-digitaal",
+      "label": "wifi off",
+      "asset": "sprite.svg#wifi_off"
+    },
+    {
+      "name": "signal_wifi_4_bar",
+      "category": "communicatie-digitaal",
+      "label": "signal wifi 4 bar",
+      "asset": "sprite.svg#signal_wifi_4_bar"
+    },
+    {
+      "name": "network_cell",
+      "category": "communicatie-digitaal",
+      "label": "network cell",
+      "asset": "sprite.svg#network_cell"
+    },
+    {
+      "name": "call",
+      "category": "communicatie-digitaal",
+      "label": "call",
+      "asset": "sprite.svg#call"
+    },
+    {
+      "name": "sms",
+      "category": "communicatie-digitaal",
+      "label": "sms",
+      "asset": "sprite.svg#sms"
+    },
+    {
+      "name": "chat",
+      "category": "communicatie-digitaal",
+      "label": "chat",
+      "asset": "sprite.svg#chat"
+    },
+    {
+      "name": "language",
+      "category": "communicatie-digitaal",
+      "label": "language",
+      "asset": "sprite.svg#language"
+    },
+    {
+      "name": "translate",
+      "category": "communicatie-digitaal",
+      "label": "translate",
+      "asset": "sprite.svg#translate"
+    },
+    {
+      "name": "devices",
+      "category": "communicatie-digitaal",
+      "label": "devices",
+      "asset": "sprite.svg#devices"
+    },
+    {
+      "name": "battery_full",
+      "category": "communicatie-digitaal",
+      "label": "battery full",
+      "asset": "sprite.svg#battery_full"
+    },
+    {
+      "name": "storefront",
+      "category": "diensten-winkels",
+      "label": "storefront",
+      "asset": "sprite.svg#storefront"
+    },
+    {
+      "name": "shopping_bag",
+      "category": "diensten-winkels",
+      "label": "shopping bag",
+      "asset": "sprite.svg#shopping_bag"
+    },
+    {
+      "name": "local_mall",
+      "category": "diensten-winkels",
+      "label": "local mall",
+      "asset": "sprite.svg#local_mall"
+    },
+    {
+      "name": "local_laundry_service",
+      "category": "diensten-winkels",
+      "label": "local laundry service",
+      "asset": "sprite.svg#local_laundry_service"
+    },
+    {
+      "name": "dry_cleaning",
+      "category": "diensten-winkels",
+      "label": "dry cleaning",
+      "asset": "sprite.svg#dry_cleaning"
+    },
+    {
+      "name": "local_gas_station",
+      "category": "diensten-winkels",
+      "label": "local gas station",
+      "asset": "sprite.svg#local_gas_station"
+    },
+    {
+      "name": "atm",
+      "category": "diensten-winkels",
+      "label": "atm",
+      "asset": "sprite.svg#atm"
+    },
+    {
+      "name": "currency_exchange",
+      "category": "diensten-winkels",
+      "label": "currency exchange",
+      "asset": "sprite.svg#currency_exchange"
+    },
+    {
+      "name": "content_cut",
+      "category": "diensten-winkels",
+      "label": "content cut",
+      "asset": "sprite.svg#content_cut"
+    },
+    {
+      "name": "local_pharmacy",
+      "category": "diensten-winkels",
+      "label": "local pharmacy",
+      "asset": "sprite.svg#local_pharmacy"
+    },
+    {
+      "name": "museum",
+      "category": "cultuur-religie",
+      "label": "museum",
+      "asset": "sprite.svg#museum"
+    },
+    {
+      "name": "church",
+      "category": "cultuur-religie",
+      "label": "church",
+      "asset": "sprite.svg#church"
+    },
+    {
+      "name": "mosque",
+      "category": "cultuur-religie",
+      "label": "mosque",
+      "asset": "sprite.svg#mosque"
+    },
+    {
+      "name": "synagogue",
+      "category": "cultuur-religie",
+      "label": "synagogue",
+      "asset": "sprite.svg#synagogue"
+    },
+    {
+      "name": "temple_buddhist",
+      "category": "cultuur-religie",
+      "label": "temple buddhist",
+      "asset": "sprite.svg#temple_buddhist"
+    },
+    {
+      "name": "temple_hindu",
+      "category": "cultuur-religie",
+      "label": "temple hindu",
+      "asset": "sprite.svg#temple_hindu"
+    },
+    {
+      "name": "account_balance",
+      "category": "cultuur-religie",
+      "label": "account balance",
+      "asset": "sprite.svg#account_balance"
+    },
+    {
+      "name": "theater_comedy",
+      "category": "cultuur-religie",
+      "label": "theater comedy",
+      "asset": "sprite.svg#theater_comedy"
+    },
+    {
+      "name": "festival",
+      "category": "cultuur-religie",
+      "label": "festival",
+      "asset": "sprite.svg#festival"
+    },
+    {
+      "name": "sports_esports",
+      "category": "cultuur-religie",
+      "label": "sports esports",
+      "asset": "sprite.svg#sports_esports"
+    },
+    {
+      "name": "accessible_forward",
+      "category": "toegankelijkheid",
+      "label": "accessible forward",
+      "asset": "sprite.svg#accessible_forward"
+    },
+    {
+      "name": "assist_walker",
+      "category": "toegankelijkheid",
+      "label": "assist walker",
+      "asset": "sprite.svg#assist_walker"
+    },
+    {
+      "name": "hearing",
+      "category": "toegankelijkheid",
+      "label": "hearing",
+      "asset": "sprite.svg#hearing"
+    },
+    {
+      "name": "hearing_disabled",
+      "category": "toegankelijkheid",
+      "label": "hearing disabled",
+      "asset": "sprite.svg#hearing_disabled"
+    },
+    {
+      "name": "blind",
+      "category": "toegankelijkheid",
+      "label": "blind",
+      "asset": "sprite.svg#blind"
+    },
+    {
+      "name": "sign_language",
+      "category": "toegankelijkheid",
+      "label": "sign language",
+      "asset": "sprite.svg#sign_language"
+    },
+    {
+      "name": "wheelchair_pickup",
+      "category": "toegankelijkheid",
+      "label": "wheelchair pickup",
+      "asset": "sprite.svg#wheelchair_pickup"
+    },
+    {
+      "name": "elevator",
+      "category": "toegankelijkheid",
+      "label": "elevator",
+      "asset": "sprite.svg#elevator"
+    },
+    {
+      "name": "sunny",
+      "category": "weer-klimaat",
+      "label": "sunny",
+      "asset": "sprite.svg#sunny"
+    },
+    {
+      "name": "partly_cloudy_day",
+      "category": "weer-klimaat",
+      "label": "partly cloudy day",
+      "asset": "sprite.svg#partly_cloudy_day"
+    },
+    {
+      "name": "cloud",
+      "category": "weer-klimaat",
+      "label": "cloud",
+      "asset": "sprite.svg#cloud"
+    },
+    {
+      "name": "rainy",
+      "category": "weer-klimaat",
+      "label": "rainy",
+      "asset": "sprite.svg#rainy"
+    },
+    {
+      "name": "thunderstorm",
+      "category": "weer-klimaat",
+      "label": "thunderstorm",
+      "asset": "sprite.svg#thunderstorm"
+    },
+    {
+      "name": "weather_snowy",
+      "category": "weer-klimaat",
+      "label": "weather snowy",
+      "asset": "sprite.svg#weather_snowy"
+    },
+    {
+      "name": "air",
+      "category": "weer-klimaat",
+      "label": "air",
+      "asset": "sprite.svg#air"
+    },
+    {
+      "name": "thermostat",
+      "category": "weer-klimaat",
+      "label": "thermostat",
+      "asset": "sprite.svg#thermostat"
+    },
+    {
+      "name": "humidity_percentage",
+      "category": "weer-klimaat",
+      "label": "humidity percentage",
+      "asset": "sprite.svg#humidity_percentage"
+    },
+    {
+      "name": "tsunami",
+      "category": "weer-klimaat",
+      "label": "tsunami",
+      "asset": "sprite.svg#tsunami"
+    },
+    {
+      "name": "bolt",
+      "category": "energie-nutsvoorzieningen",
+      "label": "bolt",
+      "asset": "sprite.svg#bolt"
+    },
+    {
+      "name": "electric_bolt",
+      "category": "energie-nutsvoorzieningen",
+      "label": "electric bolt",
+      "asset": "sprite.svg#electric_bolt"
+    },
+    {
+      "name": "power",
+      "category": "energie-nutsvoorzieningen",
+      "label": "power",
+      "asset": "sprite.svg#power"
+    },
+    {
+      "name": "solar_power",
+      "category": "energie-nutsvoorzieningen",
+      "label": "solar power",
+      "asset": "sprite.svg#solar_power"
+    },
+    {
+      "name": "wind_power",
+      "category": "energie-nutsvoorzieningen",
+      "label": "wind power",
+      "asset": "sprite.svg#wind_power"
+    },
+    {
+      "name": "water_pump",
+      "category": "energie-nutsvoorzieningen",
+      "label": "water pump",
+      "asset": "sprite.svg#water_pump"
+    },
+    {
+      "name": "plumbing",
+      "category": "energie-nutsvoorzieningen",
+      "label": "plumbing",
+      "asset": "sprite.svg#plumbing"
+    },
+    {
+      "name": "lightbulb",
+      "category": "energie-nutsvoorzieningen",
+      "label": "lightbulb",
+      "asset": "sprite.svg#lightbulb"
+    },
+    {
+      "name": "propane",
+      "category": "energie-nutsvoorzieningen",
+      "label": "propane",
+      "asset": "sprite.svg#propane"
+    },
+    {
+      "name": "gas_meter",
+      "category": "energie-nutsvoorzieningen",
+      "label": "gas meter",
+      "asset": "sprite.svg#gas_meter"
+    },
+    {
+      "name": "payments",
+      "category": "geld-budget",
+      "label": "payments",
+      "asset": "sprite.svg#payments"
+    },
+    {
+      "name": "account_balance_wallet",
+      "category": "geld-budget",
+      "label": "account balance wallet",
+      "asset": "sprite.svg#account_balance_wallet"
+    },
+    {
+      "name": "credit_card",
+      "category": "geld-budget",
+      "label": "credit card",
+      "asset": "sprite.svg#credit_card"
+    },
+    {
+      "name": "paid",
+      "category": "geld-budget",
+      "label": "paid",
+      "asset": "sprite.svg#paid"
+    },
+    {
+      "name": "savings",
+      "category": "geld-budget",
+      "label": "savings",
+      "asset": "sprite.svg#savings"
+    },
+    {
+      "name": "receipt_long",
+      "category": "geld-budget",
+      "label": "receipt long",
+      "asset": "sprite.svg#receipt_long"
+    },
+    {
+      "name": "price_change",
+      "category": "geld-budget",
+      "label": "price change",
+      "asset": "sprite.svg#price_change"
+    },
+    {
+      "name": "currency_bitcoin",
+      "category": "geld-budget",
+      "label": "currency bitcoin",
+      "asset": "sprite.svg#currency_bitcoin"
+    },
+    {
+      "name": "euro",
+      "category": "geld-budget",
+      "label": "euro",
+      "asset": "sprite.svg#euro"
+    },
+    {
+      "name": "attach_money",
+      "category": "geld-budget",
+      "label": "attach money",
+      "asset": "sprite.svg#attach_money"
+    },
+    {
+      "name": "hiking",
+      "category": "activiteiten-vrije-tijd",
+      "label": "hiking",
+      "asset": "sprite.svg#hiking"
+    },
+    {
+      "name": "directions_run",
+      "category": "activiteiten-vrije-tijd",
+      "label": "directions run",
+      "asset": "sprite.svg#directions_run"
+    },
+    {
+      "name": "pool",
+      "category": "activiteiten-vrije-tijd",
+      "label": "pool",
+      "asset": "sprite.svg#pool"
+    },
+    {
+      "name": "kayaking",
+      "category": "activiteiten-vrije-tijd",
+      "label": "kayaking",
+      "asset": "sprite.svg#kayaking"
+    },
+    {
+      "name": "sailing",
+      "category": "activiteiten-vrije-tijd",
+      "label": "sailing",
+      "asset": "sprite.svg#sailing"
+    },
+    {
+      "name": "sports_soccer",
+      "category": "activiteiten-vrije-tijd",
+      "label": "sports soccer",
+      "asset": "sprite.svg#sports_soccer"
+    },
+    {
+      "name": "photo_camera",
+      "category": "activiteiten-vrije-tijd",
+      "label": "photo camera",
+      "asset": "sprite.svg#photo_camera"
+    },
+    {
+      "name": "music_note",
+      "category": "activiteiten-vrije-tijd",
+      "label": "music note",
+      "asset": "sprite.svg#music_note"
+    },
+    {
+      "name": "local_fire_department",
+      "category": "activiteiten-vrije-tijd",
+      "label": "local fire department",
+      "asset": "sprite.svg#local_fire_department"
+    },
+    {
+      "name": "globe_asia",
+      "category": "internationaal",
+      "label": "globe asia",
+      "asset": "sprite.svg#globe_asia"
+    },
+    {
+      "name": "globe",
+      "category": "internationaal",
+      "label": "globe",
+      "asset": "sprite.svg#globe"
+    },
+    {
+      "name": "flag",
+      "category": "internationaal",
+      "label": "flag",
+      "asset": "sprite.svg#flag"
+    },
+    {
+      "name": "travel_explore",
+      "category": "internationaal",
+      "label": "travel explore",
+      "asset": "sprite.svg#travel_explore"
+    },
+    {
+      "name": "earthquake",
+      "category": "internationaal",
+      "label": "earthquake",
+      "asset": "sprite.svg#earthquake"
+    },
+    {
+      "name": "home",
+      "category": "interface-status",
+      "label": "home",
+      "asset": "sprite.svg#home"
+    },
+    {
+      "name": "search",
+      "category": "interface-status",
+      "label": "search",
+      "asset": "sprite.svg#search"
+    },
+    {
+      "name": "close",
+      "category": "interface-status",
+      "label": "close",
+      "asset": "sprite.svg#close"
+    },
+    {
+      "name": "check",
+      "category": "interface-status",
+      "label": "check",
+      "asset": "sprite.svg#check"
+    },
+    {
+      "name": "check_circle",
+      "category": "interface-status",
+      "label": "check circle",
+      "asset": "sprite.svg#check_circle"
+    },
+    {
+      "name": "help",
+      "category": "interface-status",
+      "label": "help",
+      "asset": "sprite.svg#help"
+    },
+    {
+      "name": "more_vert",
+      "category": "interface-status",
+      "label": "more vert",
+      "asset": "sprite.svg#more_vert"
+    },
+    {
+      "name": "menu",
+      "category": "interface-status",
+      "label": "menu",
+      "asset": "sprite.svg#menu"
+    },
+    {
+      "name": "settings",
+      "category": "interface-status",
+      "label": "settings",
+      "asset": "sprite.svg#settings"
+    },
+    {
+      "name": "filter_list",
+      "category": "interface-status",
+      "label": "filter list",
+      "asset": "sprite.svg#filter_list"
+    },
+    {
+      "name": "refresh",
+      "category": "interface-status",
+      "label": "refresh",
+      "asset": "sprite.svg#refresh"
+    },
+    {
+      "name": "schedule",
+      "category": "interface-status",
+      "label": "schedule",
+      "asset": "sprite.svg#schedule"
+    },
+    {
+      "name": "location_on",
+      "category": "interface-status",
+      "label": "location on",
+      "asset": "sprite.svg#location_on"
+    },
+    {
+      "name": "my_location",
+      "category": "interface-status",
+      "label": "my location",
+      "asset": "sprite.svg#my_location"
+    },
+    {
+      "name": "star",
+      "category": "interface-status",
+      "label": "star",
+      "asset": "sprite.svg#star"
+    },
+    {
+      "name": "favorite",
+      "category": "interface-status",
+      "label": "favorite",
+      "asset": "sprite.svg#favorite"
+    },
+    {
+      "name": "visibility",
+      "category": "interface-status",
+      "label": "visibility",
+      "asset": "sprite.svg#visibility"
+    },
+    {
+      "name": "lock",
+      "category": "interface-status",
+      "label": "lock",
+      "asset": "sprite.svg#lock"
+    },
+    {
+      "name": "verified",
+      "category": "interface-status",
+      "label": "verified",
+      "asset": "sprite.svg#verified"
+    },
+    {
+      "name": "error",
+      "category": "interface-status",
+      "label": "error",
+      "asset": "sprite.svg#error"
+    },
+    {
+      "name": "expand_more",
+      "category": "interface-status",
+      "label": "expand more",
+      "asset": "sprite.svg#expand_more"
+    },
+    {
+      "name": "open_in_new",
+      "category": "interface-status",
+      "label": "open in new",
+      "asset": "sprite.svg#open_in_new"
+    },
+    {
+      "name": "share",
+      "category": "interface-status",
+      "label": "share",
+      "asset": "sprite.svg#share"
+    },
+    {
+      "name": "download",
+      "category": "interface-status",
+      "label": "download",
+      "asset": "sprite.svg#download"
+    },
+    {
+      "name": "add",
+      "category": "interface-status",
+      "label": "add",
+      "asset": "sprite.svg#add"
+    },
+    {
+      "name": "remove",
+      "category": "interface-status",
+      "label": "remove",
+      "asset": "sprite.svg#remove"
+    },
+    {
+      "name": "edit",
+      "category": "interface-status",
+      "label": "edit",
+      "asset": "sprite.svg#edit"
+    },
+    {
+      "name": "delete",
+      "category": "interface-status",
+      "label": "delete",
+      "asset": "sprite.svg#delete"
+    },
+    {
+      "name": "arrow_back",
+      "category": "interface-status",
+      "label": "arrow back",
+      "asset": "sprite.svg#arrow_back"
+    },
+    {
+      "name": "arrow_forward",
+      "category": "interface-status",
+      "label": "arrow forward",
+      "asset": "sprite.svg#arrow_forward"
+    }
+  ]
+}
