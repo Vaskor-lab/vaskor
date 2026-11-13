@@ -1,21 +1,23 @@
-const iconPaths = {
-  water: '<path d="M12 2.1S5.7 9.5 5.7 13.8a6.3 6.3 0 1 0 12.6 0C18.3 9.5 12 2.1 12 2.1Z" fill="currentColor"/><path d="M9.1 14.2c0 1.6 1 2.7 2.5 3.1" fill="none" stroke="#E37400" stroke-linecap="round" stroke-width="1.5"/>',
-  toilet: '<path d="M7 3h10v2h-2v2h6v2.5c0 4.1-2.9 7.5-6.7 8.3L16 21h-3l-2-3H9v-7h6V9H7v2H5V5c0-1.1.9-2 2-2Z" fill="currentColor"/>',
-  shower: '<path d="M5 10a7 7 0 0 1 14 0v1h-2v-1a5 5 0 0 0-10 0v1H5v-1Zm1 4h2l-.5 2H6.5L6 14Zm5 0h2l-.5 2h-1L11 14Zm5 0h2l-.5 2h-1l-.5-2Zm-9 5h2l-.5 2h-1L7 19Zm5 0h2l-.5 2h-1l-.5-2Z" fill="currentColor"/>',
-  swimming: '<path d="M3 10c2.2 0 2.2-2 4.5-2S9.7 10 12 10s2.2-2 4.5-2S18.7 10 21 10v2c-2.2 0-2.2-2-4.5-2S14.3 12 12 12s-2.2-2-4.5-2S5.3 12 3 12v-2Zm0 5c2.2 0 2.2-2 4.5-2S9.7 15 12 15s2.2-2 4.5-2S18.7 15 21 15v2c-2.2 0-2.2-2-4.5-2S14.3 17 12 17s-2.2-2-4.5-2S5.3 17 3 17v-2Z" fill="currentColor"/>',
-};
-
-const materialSymbols = {
+const symbolIds = {
+  water: 'water_drop',
+  toilet: 'wc',
+  shower: 'shower',
+  swimming: 'waves',
   orientation: 'explore', shelter: 'cabin', public: 'water_drop', transport: 'directions_bus',
-  nature: 'landscape', sport: 'sports_soccer', safety: 'health_and_safety'
+  nature: 'landscape', sport: 'sports_soccer', safety: 'health_and_safety',
+};
+const iconPaths = {
+  water: 'M480-80q-137 0-228.5-94T160-408q0-62 28-124t70-119q42-57 91-107t91-87q8-8 18.5-11.5T480-860q11 0 21.5 3.5T520-845q42 37 91 87t91 107q42 57 70 119t28 124q0 140-91.5 234T480-80Zm11-120q12-1 20.5-9.5T520-230q0-14-9-22.5t-23-7.5q-41 3-87-22.5T343-375q-2-11-10.5-18t-19.5-7q-14 0-23 10.5t-6 24.5q17 91 80 130t127 35Z',
+  toilet: 'M220-120v-260h-20q-17 0-28.5-11.5T160-420v-180q0-33 23.5-56.5T240-680h120q33 0 56.5 23.5T440-600v180q0 17-11.5 28.5T400-380h-20v260q0 17-11.5 28.5T340-80h-80q-17 0-28.5-11.5T220-120Zm80-600q-33 0-56.5-23.5T220-800q0-33 23.5-56.5T300-880q33 0 56.5 23.5T380-800q0 33-23.5 56.5T300-720Zm300 600v-200h-65q-20 0-32-16.5t-5-36.5l84-253q8-26 29.5-40t48.5-14q27 0 48.5 14t29.5 40l84 253q7 20-5 36.5T785-320h-65v200q0 17-11.5 28.5T680-80h-40q-17 0-28.5-11.5T600-120Zm60-600q-33 0-56.5-23.5T580-800q0-33 23.5-56.5T660-880q33 0 56.5 23.5T740-800q0 33-23.5 56.5T660-720Z',
+  shower: 'M320-240q-17 0-28.5-11.5T280-280q0-17 11.5-28.5T320-320q17 0 28.5 11.5T360-280q0 17-11.5 28.5T320-240Zm160 0q-17 0-28.5-11.5T440-280q0-17 11.5-28.5T480-320q17 0 28.5 11.5T520-280q0 17-11.5 28.5T480-240Zm160 0q-17 0-28.5-11.5T600-280q0-17 11.5-28.5T640-320q17 0 28.5 11.5T680-280q0 17-11.5 28.5T640-240ZM240-400q-17 0-28.5-11.5T200-440v-40q0-106 68-184t172-92v-44q0-17 11.5-28.5T480-840q17 0 28.5 11.5T520-800v44q104 14 172 92t68 184v40q0 17-11.5 28.5T720-400H240Zm80 280q-17 0-28.5-11.5T280-160q0-17 11.5-28.5T320-200q17 0 28.5 11.5T360-160q0 17-11.5 28.5T320-120Zm160 0q-17 0-28.5-11.5T440-160q0-17 11.5-28.5T480-200q17 0 28.5 11.5T520-160q0 17-11.5 28.5T480-120Zm160 0q-17 0-28.5-11.5T600-160q0-17 11.5-28.5T640-200q17 0 28.5 11.5T680-160q0 17-11.5 28.5T640-120Z',
+  swimming: 'M280-202q-49 0-78 22t-81 31q-17 3-29-8t-12-28q0-17 11.5-28.5T120-230q36-11 68-30.5t92-19.5q38 0 62.5 8.5t45.5 19q21 10.5 42 19.5t50 9q29 0 50-9t42-19.5q21-10.5 46-19t62-8.5q60 0 92 19.5t68 30.5q17 5 28.5 16.5T880-185q0 17-12 28t-29 8q-52-9-81-31t-78-22q-28 0-48.5 8.5t-41 19Q570-164 544.5-155t-64.5 9q-39 0-64.5-9t-46-19.5Q349-185 329-193.5t-49-8.5Zm0-178q-49 0-78 22t-81 31q-17 3-29-8t-12-28q0-17 11.5-28.5T120-408q36-11 68-30.5t92-19.5q38 0 62.5 8.5t45.5 19q21 10.5 42 19.5t50 9q29 0 50-9t42-19.5q21-10.5 46-19t62-8.5q60 0 92 19.5t68 30.5q17 5 28.5 16.5T880-363q0 17-12 28t-29 8q-52-9-81-31t-78-22q-29 0-49.5 8.5t-41 19Q569-342 544-333t-64 9q-39 0-64.5-9t-46-19.5Q349-363 329-371.5t-49-8.5Zm0-178q-49 0-78 22t-81 31q-17 3-29-8t-12-28q0-17 11.5-28.5T120-586q36-11 68-30.5t92-19.5q38 0 62.5 8.5t45.5 19q21 10.5 42 19.5t50 9q29 0 50-9t42-19.5q21-10.5 46-19t62-8.5q60 0 92 19.5t68 30.5q17 5 28.5 16.5T880-541q0 17-12 28t-29 8q-52-9-81-31t-78-22q-28 0-48.5 8.5t-41 19Q570-520 544.5-511t-64.5 9q-39 0-64.5-9t-46-19.5Q349-541 329-549.5t-49-8.5Zm0-178q-49 0-78 22t-81 31q-17 3-29-8t-12-28q0-17 11.5-28.5T120-764q36-11 68-30.5t92-19.5q38 0 62.5 8.5t45.5 19q21 10.5 42 19.5t50 9q29 0 50-9t42-19.5q21-10.5 46-19t62-8.5q60 0 92 19.5t68 30.5q17 5 28.5 16.5T880-719q0 17-12 28t-29 8q-52-9-81-31t-78-22q-28 0-48.5 8.5t-41 19Q570-698 544.5-689t-64.5 9q-39 0-64.5-9t-46-19.5Q349-719 329-727.5t-49-8.5Z',
 };
 
 export function markerIconSvg(category) {
-  if (materialSymbols[category]) {
-    return `<svg viewBox="0 0 40 48" aria-hidden="true" focusable="false"><path d="M20 47C16.5 40.7 3 27.2 3 18A17 17 0 1 1 37 18c0 9.2-13.5 22.7-17 29Z" fill="#fff"/><circle cx="20" cy="18" r="13.3" fill="#E37400"/><text x="20" y="24" text-anchor="middle" fill="#fff" font-family="Material Symbols Rounded" font-size="18" font-variation-settings="'FILL' 1">${materialSymbols[category]}</text></svg>`;
-  }
-  const icon = iconPaths[category] || iconPaths.water;
-  return `<svg viewBox="0 0 40 48" aria-hidden="true" focusable="false"><path d="M20 47C16.5 40.7 3 27.2 3 18A17 17 0 1 1 37 18c0 9.2-13.5 22.7-17 29Z" fill="#fff"/><circle cx="20" cy="18" r="13.3" fill="#E37400"/><g transform="translate(10 8) scale(.83)" color="#fff">${icon}</g></svg>`;
+  const icon = iconPaths[category];
+  if (!icon && symbolIds[category]) return `<svg viewBox="0 0 40 48" aria-hidden="true" focusable="false"><path d="M20 47C16.5 40.7 3 27.2 3 18A17 17 0 1 1 37 18c0 9.2-13.5 22.7-17 29Z" fill="#fff"/><circle cx="20" cy="18" r="13.3" fill="#E37400"/><text x="20" y="24" text-anchor="middle" fill="#fff" font-family="Material Symbols Rounded" font-size="18" font-variation-settings="'FILL' 1">${symbolIds[category]}</text></svg>`;
+  const fallbackIcon = icon || iconPaths.water;
+  return `<svg viewBox="0 0 40 48" aria-hidden="true" focusable="false"><path d="M20 47C16.5 40.7 3 27.2 3 18A17 17 0 1 1 37 18c0 9.2-13.5 22.7-17 29Z" fill="#fff"/><circle cx="20" cy="18" r="13.3" fill="#E37400"/><svg x="10" y="8" width="20" height="20" viewBox="0 -960 960 960"><path fill="#fff" d="${fallbackIcon}"/></svg></svg>`;
 }
 
 export function createPoiMarkerElement(feature, documentImpl = document) {
