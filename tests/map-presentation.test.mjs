@@ -1,7 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createPoiMarkerElement, markerIconSvg } from '../knowledge/map-markers.mjs';
+import { readFile } from 'node:fs/promises';
+import { createPoiMarkerElement, markerIconSvg, MATERIAL_SYMBOL_PATHS } from '../knowledge/map-markers.mjs';
 import { applyVaskorMapStyle } from '../knowledge/map-style.mjs';
+
+const iconRoot = new URL('../assets/map-icons/google-material-symbols-rounded/', import.meta.url);
 
 test('water and toilet marker icons share the white pin and VASKOR orange', () => {
   for (const category of ['water', 'toilet']) {
@@ -23,6 +26,26 @@ test('POI marker buttons have a readable category label', () => {
   assert.equal(marker.className, 'poi-marker');
   assert.equal(attributes['aria-label'], 'Toilet');
   assert.match(marker.innerHTML, /E37400/);
+});
+
+test('unknown categories use a neutral icon instead of the water icon', async () => {
+  const sprite = await readFile(new URL('sprite.svg', iconRoot), 'utf8');
+  const neutral = sprite.match(/<symbol id="info" viewBox="[^"]+"><path fill="currentColor" d="([^"]+)"\/><\/symbol>/);
+  assert.ok(neutral, 'neutral info symbol exists in the approved sprite');
+  const unknownSvg = markerIconSvg('unrecognized-category');
+  assert.notEqual(unknownSvg, markerIconSvg('water'));
+  assert.notEqual(markerIconSvg('unrecognized-category', 'drinking_water'), markerIconSvg('water'));
+  assert.ok(unknownSvg.includes(`<path fill="#fff" d="${neutral[1]}"/>`));
+});
+
+test('public facility objects use distinct, type-appropriate icons where available', () => {
+  const disposal = markerIconSvg('public', 'sanitary_dump_station');
+  const picnic = markerIconSvg('public', 'picnic_site');
+  const fire = markerIconSvg('public', 'firepit');
+  const waste = markerIconSvg('public', 'waste_basket');
+  const firstAid = markerIconSvg('public', 'first_aid');
+  assert.equal(new Set([disposal, picnic, fire, waste, firstAid]).size, 5);
+  assert.equal(markerIconSvg('public', 'firepit'), fire);
 });
 
 test('Positron receives the VASKOR palette while retaining its layer structure', () => {
@@ -60,5 +83,56 @@ test('POI markers include the four inline Google Material Symbols paths', () => 
     const svg = markerIconSvg(category);
     assert.ok(svg.includes(`<path fill="#fff" d="${path}"/>`), `${category} symbol is inline`);
     assert.doesNotMatch(svg, /<use\\b/);
+  }
+});
+
+test('all seven category markers use inline paths from the approved symbol manifest and sprite', async () => {
+  const manifest = JSON.parse(await readFile(new URL('manifest.json', iconRoot), 'utf8'));
+  const sprite = await readFile(new URL('sprite.svg', iconRoot), 'utf8');
+  const manifestNames = new Set(manifest.icons.map(icon => icon.name));
+  const symbols = {
+    orientation: 'travel_explore', shelter: 'cabin', public: 'public',
+    transport: 'directions_bus', nature: 'landscape', sport: 'sports_soccer', safety: 'health_and_safety'
+  };
+  const categorySvgs = Object.keys(symbols).map(category => markerIconSvg(category));
+  assert.equal(new Set(categorySvgs).size, 7, 'each main category has its own recognizable symbol');
+  for (const [category, symbol] of Object.entries(symbols)) {
+    assert.ok(manifestNames.has(symbol), `${symbol} is in the approved manifest`);
+    const escaped = symbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const match = sprite.match(new RegExp(`<symbol id="${escaped}" viewBox="[^"]+"><path fill="currentColor" d="([^"]+)"/></symbol>`));
+    assert.ok(match, `${symbol} path is in the approved sprite`);
+    const svg = markerIconSvg(category);
+    assert.ok(svg.includes(`<path fill="#fff" d="${match[1]}"/>`), `${category} embeds its exact sprite path`);
+    assert.doesNotMatch(svg, /<text\b|font-family|font-variation-settings|<use\b/);
+  }
+});
+
+test('type-specific public facility paths also come from the approved sprite and have no runtime dependency', async () => {
+  const manifest = JSON.parse(await readFile(new URL('manifest.json', iconRoot), 'utf8'));
+  const sprite = await readFile(new URL('sprite.svg', iconRoot), 'utf8');
+  const markerSource = await readFile(new URL('../knowledge/map-markers.mjs', import.meta.url), 'utf8');
+  const names = new Set(manifest.icons.map(icon => icon.name));
+  const symbols = {
+    sanitary_dump_station: 'cleaning_services', picnic_site: 'restaurant', firepit: 'local_fire_department',
+    waste_basket: 'recycling', first_aid: 'medical_services'
+  };
+  for (const [type, symbol] of Object.entries(symbols)) {
+    assert.ok(names.has(symbol), `${symbol} is in the approved manifest`);
+    const match = sprite.match(new RegExp(`<symbol id="${symbol}" viewBox="[^"]+"><path fill="currentColor" d="([^"]+)"/></symbol>`));
+    assert.ok(match, `${symbol} path is in the approved sprite`);
+    assert.ok(markerIconSvg('public', type).includes(`<path fill="#fff" d="${match[1]}"/>`), `${type} embeds ${symbol}`);
+  }
+  assert.doesNotMatch(markerSource, /fonts\.googleapis|font-family|font-variation-settings|<text\b|<use\b|https?:\/\//);
+});
+
+test('every embedded symbol path is present in the approved manifest and sprite', async () => {
+  const manifest = JSON.parse(await readFile(new URL('manifest.json', iconRoot), 'utf8'));
+  const sprite = await readFile(new URL('sprite.svg', iconRoot), 'utf8');
+  const names = new Set(manifest.icons.map(icon => icon.name));
+  for (const [symbol, path] of Object.entries(MATERIAL_SYMBOL_PATHS)) {
+    assert.ok(names.has(symbol), `${symbol} is in the approved manifest`);
+    const start = sprite.indexOf(`<symbol id="${symbol}" `);
+    const end = sprite.indexOf('</symbol>', start);
+    assert.ok(start >= 0 && end > start && sprite.slice(start, end).includes(`d="${path}"`), `${symbol} path is in the approved sprite`);
   }
 });

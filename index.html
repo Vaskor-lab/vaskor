@@ -57,7 +57,7 @@ async function findWaterPoints(longitude,latitude){
    const {data}=await fetchOverpass(overpassSearchQuery(longitude,latitude,requestedRadiusKm),{endpoints:overpassEndpoints,signal:request.controller.signal,timeoutMs:70000});
    if(request!==waterRequest)return;
    const features=filterGratisOsmElements(data.elements||[]).flatMap(element=>{
-    const lon=element.lon??element.center?.lon,lat=element.lat??element.center?.lat;
+    const lon=element.type==="node"?element.lon:undefined,lat=element.type==="node"?element.lat:undefined;
     if(!Number.isFinite(lon)||!Number.isFinite(lat)||!isInsideSearchArea(longitude,latitude,lon,lat,requestedRadiusKm))return [];
     const feature=toVaskorFeature(element);if(feature)feature.properties.gratisRelation=gratisRelationForOsmElement(element);return feature?[feature]:[];
    });
@@ -73,7 +73,7 @@ async function findWaterPoints(longitude,latitude){
 function showOsmPopup(feature,ml){
  const props=feature.properties,tags=props.tags||{},content=document.createElement("div");content.className="osm-popup";
  const category=props.category||"water",label=categoryLabel(category);
- const title=document.createElement("h2");title.textContent=tags.name||tags["name:en"]||label;content.append(title);
+ const title=document.createElement("h2");title.textContent=tags.name||tags["name:en"]||props.catalogLabel||label;content.append(title);
  const list=document.createElement("dl");Object.entries(tags).sort(([a],[b])=>a.localeCompare(b)).forEach(([key,value])=>{const term=document.createElement("dt"),description=document.createElement("dd");term.textContent=key;description.textContent=value;list.append(term,description)});content.append(list);
  new ml.Popup({maxWidth:"none"}).setLngLat(feature.geometry.coordinates).setDOMContent(content).addTo(map);
 }

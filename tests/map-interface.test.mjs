@@ -17,6 +17,10 @@ test('map hides redundant copy and removes the full field test UI and logic', as
   assert.match(page, /\.maplibregl-ctrl-attrib\{font-size:9px!important/);
 });
 
+test('map page does not load the now-unused Material Symbols font', () => {
+  assert.doesNotMatch(page, /fonts\.googleapis\.com|Material\+Symbols/);
+});
+
 test('location switch starts tracking only on activation and stops cleanly when off', () => {
   assert.match(page, /role="switch" aria-checked="false" aria-label="Locatie uit"/);
   assert.match(page, /navigator\.geolocation\.watchPosition/);

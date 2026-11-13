@@ -19,8 +19,9 @@ test('circle distance filter and Overpass rectangle query support 20 and 50 km',
   assert.equal(isInsideSearchArea(0, 0, 0.3, 0, 20), false);
   assert.equal(isInsideSearchArea(0, 0, 0.3, 0, 50), true);
   const query = overpassSearchQuery(0, 0, 20);
-  for (const tag of ['drinking_water', 'water_point', 'toilets', 'shower', 'swimming_area', 'swimming_pool']) assert.ok(query.includes(tag));
-  for (const tag of ['highway', 'route', 'natural', 'waterway', 'landuse']) assert.ok(!query.includes(tag));
+  for (const tag of ['drinking_water', 'water_point', 'toilets', 'shower', 'swimming_area', 'bathing_place', 'caravan_site', 'emergency_access_point']) assert.ok(query.includes(tag));
+  assert.ok(!query.includes('swimming_pool'));
+  for (const selector of ['["route"', '["landuse"', 'swimming_pool']) assert.ok(!query.includes(selector));
   assert.throws(() => overpassSearchQuery(0, 0, 51), RangeError);
 });
 
@@ -31,8 +32,8 @@ test('OSM candidates become separate VASKOR identities and known categories', ()
   assert.equal(feature.properties.category, 'shower');
   assert.equal(classifyOsmTags({ natural: 'beach' }), null);
   const way = toVaskorFeature({ type: 'way', id: 124, center: { lon: 2.1, lat: 42.1 }, tags: { amenity: 'toilets' } });
-  assert.equal(way.geometry.type, 'Point');
-  assert.deepEqual(way.geometry.coordinates, [2.1, 42.1]);
+  assert.equal(way, null);
+  assert.equal(toVaskorFeature({ type: 'relation', id: 126, center: { lon: 2.1, lat: 42.1 }, tags: { amenity: 'toilets' } }), null);
   assert.equal(toVaskorFeature({ type: 'way', id: 125, geometry: [{ lon: 2, lat: 42 }], tags: { amenity: 'toilets' } }), null);
   assert.equal(toVaskorFeature({ type: 'node', id: 1, lon: 0, lat: 0, tags: { amenity: 'bench' } }), null);
 });
