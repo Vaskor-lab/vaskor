@@ -19,8 +19,9 @@ test('circle distance filter and Overpass rectangle query support 20 and 50 km',
   assert.equal(isInsideSearchArea(0, 0, 0.3, 0, 20), false);
   assert.equal(isInsideSearchArea(0, 0, 0.3, 0, 50), true);
   const query = overpassSearchQuery(0, 0, 20);
-  for (const tag of ['drinking_water', 'water_point', 'toilets', 'shower', 'swimming_area', 'swimming_pool']) assert.ok(query.includes(tag));
-  for (const tag of ['highway', 'route', 'natural', 'waterway', 'landuse']) assert.ok(!query.includes(tag));
+  for (const tag of ['drinking_water', 'water_point', 'toilets', 'shower', 'swimming_area', 'bathing_place', 'caravan_site', 'emergency_access_point']) assert.ok(query.includes(tag));
+  assert.ok(!query.includes('swimming_pool'));
+  for (const selector of ['["route"', '["landuse"', 'swimming_pool']) assert.ok(!query.includes(selector));
   assert.throws(() => overpassSearchQuery(0, 0, 51), RangeError);
 });
 
